@@ -1,8 +1,9 @@
 # Vue 3
 FROM node:24-alpine AS base
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
+RUN corepack enable
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
 COPY . .
 
 FROM base AS build-stage

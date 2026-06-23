@@ -19,7 +19,6 @@ import './styles/tailwind.css'
 import './styles/main.scss'
 
 const app = createApp(App)
-
 registerPlugins(app)
 
 app.mount('#app')

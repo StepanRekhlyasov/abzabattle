@@ -1,0 +1,16 @@
+// vuetify-sonner hardcodes surface-variant on .card-snackbar.
+// With theme.utilities: false, bg-* classes from VCard color prop have no styles.
+@each $color in primary, secondary, success, error, warning, info {
+  .v-card.card-snackbar.bg-#{$color} {
+    background: rgb(var(--v-theme-#{$color}));
+    color: rgb(var(--v-theme-on-#{$color}));
+  }
+}
+
+.card-snackbar {
+  .v-card-text {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+}
