@@ -17,6 +17,10 @@ export const useUserStore = defineStore('user', {
         },
         setUser(user: Player) {
             this.currentUser = user;
+        },
+        async getOnlineUsers() {
+            const response = await api.get<Player[]>(`/users/online`);
+            return response.data
         }
     },
     persist: true,
