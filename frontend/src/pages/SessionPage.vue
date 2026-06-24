@@ -20,10 +20,13 @@
                 @action="handleStartBattle"
             />
             <battle-view v-else-if="sessionStore.isBattlePhase()" />
-            <victory-view
+            <div
                 v-else-if="sessionStore.isFinishedPhase() && currentSession.winnerPlayerName"
-                :winner-name="currentSession.winnerPlayerName"
-            />
+                class="session-finished"
+            >
+                <battle-view finished />
+                <victory-view :winner-name="currentSession.winnerPlayerName" />
+            </div>
         </template>
     </main-layout>
 </template>
@@ -108,5 +111,11 @@ onUnmounted(() => sessionStore.setCurrentSession(null));
     transform: translate(-50%, -50%);
     background-color: #000;
     padding: var(--space-sm);
+}
+
+.session-finished {
+    position: relative;
+    width: 100%;
+    height: 100%;
 }
 </style>

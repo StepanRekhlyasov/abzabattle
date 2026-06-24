@@ -80,6 +80,11 @@ public static class BattleMapMutator
             return false;
         }
 
+        if (!BattleMapPlacement.CanPlaceTieFighter(sectors, x, y))
+        {
+            return false;
+        }
+
         sector["entity"] = new JsonObject
         {
             ["type"] = "tie-fighter",

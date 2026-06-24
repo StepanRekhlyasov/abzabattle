@@ -24,6 +24,7 @@ public static class SessionMapper
              viewerPlayerName == session.ImperialPlayerName);
         var viewerIsRebel = viewerPlayerName == session.RebelPlayerName;
         var viewerIsImperial = viewerPlayerName == session.ImperialPlayerName;
+        var isFinished = session.Status == SessionStatus.Finished;
 
         return new SessionResponse
         {
@@ -38,7 +39,8 @@ public static class SessionMapper
                     : null,
                 BattleMap = MapBattleMap(
                     session.RebelBattleMapJson,
-                    viewerIsRebel ? false : viewerIsImperial ? true : null),
+                    isFinished ? false : viewerIsRebel ? false : viewerIsImperial ? true : null,
+                    isFinished),
             },
             Imperial = new SessionSideResponse
             {
@@ -47,7 +49,8 @@ public static class SessionMapper
                     : null,
                 BattleMap = MapBattleMap(
                     session.ImperialBattleMapJson,
-                    viewerIsImperial ? false : viewerIsRebel ? true : null),
+                    isFinished ? false : viewerIsImperial ? false : viewerIsRebel ? true : null,
+                    isFinished),
             },
             CurrentTurn = session.CurrentTurn,
             Status = session.Status,
@@ -81,11 +84,15 @@ public static class SessionMapper
         TotalGames = user.TotalGames,
     };
 
-    private static JsonElement? MapBattleMap(string? battleMapJson, bool? hideUnits)
+    private static JsonElement? MapBattleMap(string? battleMapJson, bool? hideUnits, bool revealAll = false)
     {
         if (string.IsNullOrWhiteSpace(battleMapJson))
         {
             return null;
+        }
+        if (revealAll)
+        {
+            return RevealBattleMap(battleMapJson);
         }
         if (hideUnits is null)
         {
@@ -111,6 +118,33 @@ public static class SessionMapper
                 ApplyVisibility(sectorObject, hideUnits.Value);
             }
         }
+        return JsonSerializer.SerializeToElement(root, JsonOptions);
+    }
+
+    private static JsonElement RevealBattleMap(string battleMapJson)
+    {
+        var root = JsonNode.Parse(battleMapJson);
+        if (root?["sectors"] is not JsonArray sectors)
+        {
+            return JsonSerializer.Deserialize<JsonElement>(battleMapJson, JsonOptions)!;
+        }
+
+        foreach (var row in sectors)
+        {
+            if (row is not JsonArray rowSectors)
+            {
+                continue;
+            }
+
+            foreach (var sector in rowSectors)
+            {
+                if (sector is JsonObject sectorObject)
+                {
+                    sectorObject["hidden"] = false;
+                }
+            }
+        }
+
         return JsonSerializer.SerializeToElement(root, JsonOptions);
     }
 

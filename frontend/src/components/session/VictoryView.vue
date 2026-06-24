@@ -12,20 +12,22 @@ defineProps<{
 
 <style scoped lang="scss">
 .victory-view {
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    min-height: 100%;
-    padding: var(--space-lg);
-    background: #000;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 10;
+    pointer-events: none;
 }
 
 .victory-text {
     color: #ffffff;
-    font-size: 32px;
+    font-size: 40px;
     font-weight: 700;
     margin: 0;
     text-align: center;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
 }
 </style>
