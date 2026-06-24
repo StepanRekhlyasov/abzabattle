@@ -38,11 +38,17 @@ const onClickHandler = () => {
     cursor: pointer;
     overflow: hidden;
     user-select: none;
+    &:hover {
+        background-color: var(--color-sector-exposed-hover);
+    }
     .battle-sector-hidden {
         width: 100%;
         height: 100%;
         background-color: var(--color-sector-hidden);
         border-radius: 10px;
+        &:hover {
+            background-color: var(--color-sector-hidden-hover);
+        }
     }
     .battle-sector-destroyed {
         width: 100%;

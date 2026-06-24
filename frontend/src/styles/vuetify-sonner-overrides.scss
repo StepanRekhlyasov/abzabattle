@@ -4,6 +4,9 @@
   .v-card.card-snackbar.bg-#{$color} {
     background: rgb(var(--v-theme-#{$color}));
     color: rgb(var(--v-theme-on-#{$color}));
+    display: flex;
+    align-items: center;
+    padding: 10px;
   }
 }
 

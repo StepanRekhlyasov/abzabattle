@@ -5,3 +5,34 @@
     font-family: var(--font-mono);
   }
 }
+
+.generic-input {
+  padding: 10px;
+  background-color: var(--color-sector-exposed);
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  font-weight: 500;
+  color: #000000;
+  text-align: center;
+}
+.generic-button {
+  padding: 10px;
+  background-color: var(--color-sector-hidden);
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  &.transparent-button {
+    background-color: transparent;
+    color: #ffffff;
+  }
+  &:hover {
+    background-color: var(--color-sector-exposed);
+    color: #000000;
+    cursor: pointer;
+  }
+}
+p {
+  color: #ffffff;
+}

@@ -2,6 +2,7 @@ import type { Entity } from './entity';
 import type { Player } from './player';
 
 export type BattleMap = {
+    id?: string;
     options?: BattleMapOptions;
     sectors: BattleSector[][];
 }

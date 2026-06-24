@@ -1,17 +1,29 @@
 import { defineStore } from "pinia"
 import api from "@/services/api"
+import type { Player } from "@/types/player";
+import router from "@/router";
 
-
-export const useAuthStore = defineStore('auth', () => {
-    const login = async (name: string) => {
-        const response = await api.post('/login', {
-            method: 'POST',
-            body: JSON.stringify({ name }),
-        });
-        return response.data;
-    }
-
-    return {
-        login
-    }
+export const useAuthStore = defineStore('auth', {
+    state: () => ({
+        currentUser: null as Player | null,
+    }),
+    actions: {
+        async login(name: string) {
+            // const response = await api.post('/login', { name });
+            // this.currentUser = response.data;
+            this.currentUser = {
+                id: 'Xaxa',
+                name: name
+            };
+            router.push('/');
+        },
+        logout() {
+            this.resetAllStores();
+            router.push('/login');
+        },
+        resetAllStores() {
+            this.$reset();
+        },
+    },
+    persist: true,
 })

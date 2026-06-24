@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <VSonner position="top-center"/>
+    <VSonner position="top-center" />
     <v-main>
       <router-view />
     </v-main>

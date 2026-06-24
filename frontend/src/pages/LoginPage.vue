@@ -98,17 +98,6 @@ const checkGameOver = () => {
         display: flex;
         flex-direction: column;
         gap: 10px;
-        .generic-input {
-            padding: 10px;
-            background-color: var(--color-sector-exposed);
-            border-radius: 10px;
-            border: none;
-            outline: none;
-            font-size: 16px;
-            font-weight: 500;
-            color: #000000;
-            text-align: center;
-        }
     }
 }
 </style>
