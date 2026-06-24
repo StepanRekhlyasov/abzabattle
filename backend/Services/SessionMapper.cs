@@ -56,6 +56,7 @@ public static class SessionMapper
             Status = session.Status,
             CreatorPlayerName = session.CreatorPlayerName,
             WinnerPlayerName = session.WinnerPlayerName,
+            HitsThisTurn = session.HitsThisTurn,
             CanJoin = session.Status == SessionStatus.Pending &&
                       (!rebelOccupied || !imperialOccupied) &&
                       !viewerIsParticipant,
@@ -150,23 +151,12 @@ public static class SessionMapper
 
     private static void ApplyVisibility(JsonObject sectorObject, bool hideUnits)
     {
-        var entityType = sectorObject["entity"]?["type"]?.GetValue<string>();
-        var destroyed = sectorObject["destroyed"]?.GetValue<bool>() ?? false;
         if (hideUnits)
         {
-            if (entityType is not null and not "empty")
-            {
-                sectorObject["hidden"] = !destroyed;
-            }
-            else if (destroyed)
-            {
-                sectorObject["hidden"] = false;
-            }
+            sectorObject["hidden"] = sectorObject["hidden"]?.GetValue<bool>() ?? true;
             return;
         }
-        if (entityType is not null and not "empty")
-        {
-            sectorObject["hidden"] = false;
-        }
+
+        sectorObject["hidden"] = false;
     }
 }

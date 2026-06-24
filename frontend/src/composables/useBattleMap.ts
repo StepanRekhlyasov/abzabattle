@@ -47,7 +47,7 @@ export const useBattleMap = () => {
         options,
         sectors: Array.from({ length: options.size.y }, () => Array.from({ length: options.size.x }, () => ({
             entity: { type: EntityType.Empty } as Entity,
-            hidden: true,
+            hidden: false,
             destroyed: false,
         }))),
     });
@@ -97,5 +97,13 @@ export const useBattleMap = () => {
         return battleMap;
     };
 
-    return { generateBattleMap, randomlyDeployEntities, getPlacementPreview, placeEntity };
+    const prepareBattleMapForBattle = (battleMap: BattleMap): BattleMap => {
+        const prepared = JSON.parse(JSON.stringify(battleMap)) as BattleMap;
+        prepared.sectors.forEach(row => row.forEach(sector => {
+            sector.hidden = true;
+        }));
+        return prepared;
+    };
+
+    return { generateBattleMap, randomlyDeployEntities, getPlacementPreview, placeEntity, prepareBattleMapForBattle };
 };

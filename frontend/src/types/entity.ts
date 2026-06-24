@@ -13,6 +13,9 @@ export enum EntityType {
     StarDestroyer = 'star-destroyer',
     MonCalamari = 'mon-calamari',
     TieFighter = 'tie-fighter',
+    NebulonFrigate = 'nebulon-frigate',
+    XWing = 'x-wing',
+    UWing = 'u-wing',
 }
 
 interface BaseEntity<T extends EntityType> {
@@ -29,6 +32,9 @@ export type RotatableEntity<T extends EntityType> = BaseEntity<T> & { rotation: 
 export type StarDestroyerEntity = RotatableEntity<EntityType.StarDestroyer>;
 export type MonCalamariEntity = RotatableEntity<EntityType.MonCalamari>;
 export type TieFighterEntity = RotatableEntity<EntityType.TieFighter>;
+export type NebulonFrigateEntity = RotatableEntity<EntityType.NebulonFrigate>;
+export type XWingEntity = RotatableEntity<EntityType.XWing>;
+export type UWingEntity = RotatableEntity<EntityType.UWing>;
 
 export type Entity<T extends EntityType = EntityType> = EntityTypeMap[T & keyof EntityTypeMap];
 
@@ -38,6 +44,9 @@ type EntityTypeMap = {
     [EntityType.StarDestroyer]: StarDestroyerEntity;
     [EntityType.MonCalamari]: MonCalamariEntity;
     [EntityType.TieFighter]: TieFighterEntity;
+    [EntityType.NebulonFrigate]: NebulonFrigateEntity;
+    [EntityType.XWing]: XWingEntity;
+    [EntityType.UWing]: UWingEntity;
 };
 
 export type EntityDefinition = {

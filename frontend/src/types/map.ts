@@ -13,6 +13,8 @@ export type BattleSector<T extends Entity = Entity> = {
     entity: T;
     hidden: boolean;
     destroyed: boolean;
+    shielded?: boolean;
+    shieldRevealed?: boolean;
 }
 
 export type BattleMapOptions = {

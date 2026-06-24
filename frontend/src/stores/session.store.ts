@@ -108,8 +108,21 @@ export const useSessionStore = defineStore('session', {
             this.commitSession(session);
             return session;
         },
-        async useAbility(id: string, playerName: string, abilityKind: string, x: number, y: number) {
-            const session = await sessionApi.useAbility(id, { playerName, abilityKind, x, y });
+        async useAbility(
+            id: string,
+            playerName: string,
+            abilityKind: string,
+            x: number,
+            y: number,
+            sourceEntityId?: string,
+        ) {
+            const session = await sessionApi.useAbility(id, {
+                playerName,
+                abilityKind,
+                x,
+                y,
+                sourceEntityId,
+            });
             this.commitSession(session);
             return session;
         },

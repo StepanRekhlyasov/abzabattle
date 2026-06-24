@@ -18,6 +18,7 @@ export type Session = {
     canJoin?: boolean;
     creatorPlayerName: string;
     winnerPlayerName?: string | null;
+    hitsThisTurn: number;
 }
 
 export enum SessionStatusEnum {

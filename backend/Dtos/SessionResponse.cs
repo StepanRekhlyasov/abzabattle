@@ -13,4 +13,5 @@ public class SessionResponse
     public bool CanJoin { get; set; }
     public string CreatorPlayerName { get; set; } = null!;
     public string? WinnerPlayerName { get; set; }
+    public int HitsThisTurn { get; set; }
 }

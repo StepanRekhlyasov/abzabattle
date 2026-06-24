@@ -27,6 +27,7 @@ export type UseAbilityPayload = {
     abilityKind: string;
     x: number;
     y: number;
+    sourceEntityId?: string;
 };
 
 export async function fetchSession(id: string, playerName?: string) {

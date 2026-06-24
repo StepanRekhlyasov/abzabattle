@@ -42,6 +42,7 @@ import WaitingView from '@/components/session/WaitingView.vue';
 import { useDraftStore } from '@/stores/draft.store';
 import { useSessionStore } from '@/stores/session.store';
 import { useUserStore } from '@/stores/user.store';
+import { useBattleMap } from '@/composables/useBattleMap';
 import { Faction, oppositeFaction } from '@/types/session';
 import { storeToRefs } from 'pinia';
 
@@ -49,6 +50,7 @@ const route = useRoute();
 const sessionStore = useSessionStore();
 const userStore = useUserStore();
 const draftStore = useDraftStore();
+const { prepareBattleMapForBattle } = useBattleMap();
 const { currentSession } = storeToRefs(sessionStore);
 const { currentUser } = storeToRefs(userStore);
 const { battleMap } = storeToRefs(draftStore);
@@ -94,7 +96,11 @@ const loadSession = async () => {
 
 const handleStartBattle = async () => {
     if (!currentUser.value || !battleMap.value) return;
-    await sessionStore.startBattle(sessionId.value, currentUser.value.name, battleMap.value);
+    await sessionStore.startBattle(
+        sessionId.value,
+        currentUser.value.name,
+        prepareBattleMapForBattle(battleMap.value),
+    );
 };
 
 onMounted(loadSession);

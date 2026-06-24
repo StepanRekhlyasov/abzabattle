@@ -4,6 +4,9 @@ import { getDeploymentUnitAsset } from '@/data/deploymentUnits';
 export enum AbilityKind {
     DeployTieFighter = 'deploy-tie-fighter',
     OpponentStrike = 'opponent-strike',
+    PlaceShield = 'place-shield',
+    AirborneSuperiority = 'airborne-superiority',
+    Bombardment = 'bombardment',
 }
 
 export type AbilityTarget = 'own' | 'opponent';
@@ -39,6 +42,24 @@ const ABILITY_DEFINITIONS: Partial<Record<EntityType, AbilityDefinition>> = {
         name: 'Turbolaser Batteries',
         description: 'Unleash a concentrated volley of turbolasers at a single sector on the opponent map. Does not end your turn.',
         kind: AbilityKind.OpponentStrike,
+        target: 'opponent',
+    },
+    [EntityType.NebulonFrigate]: {
+        name: 'Deflector Shield',
+        description: 'Place a shield on a friendly hidden unit. Cannot target the Nebulon itself. Does not end your turn',
+        kind: AbilityKind.PlaceShield,
+        target: 'own',
+    },
+    [EntityType.XWing]: {
+        name: 'Airborne Superiority',
+        description: 'Fire at a sector on the opponent map. Destroys Tie Fighters. Reveals other units without destroying them. Does not end your turn.',
+        kind: AbilityKind.AirborneSuperiority,
+        target: 'opponent',
+    },
+    [EntityType.UWing]: {
+        name: 'Bombardment',
+        description: 'Fire at a sector on the opponent map. Reveals Tie Fighters without destroying them. Does not end your turn.',
+        kind: AbilityKind.Bombardment,
         target: 'opponent',
     },
 };

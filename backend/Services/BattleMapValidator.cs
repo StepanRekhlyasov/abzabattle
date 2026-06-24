@@ -86,6 +86,9 @@ public static class BattleMapValidator
             ["star-destroyer"] = 50,
             ["mon-calamari"] = 30,
             ["tie-fighter"] = 10,
+            ["nebulon-frigate"] = 20,
+            ["x-wing"] = 15,
+            ["u-wing"] = 20,
         };
 
         var spent = 0;

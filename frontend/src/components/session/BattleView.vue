@@ -61,6 +61,7 @@ import { EntityRotation, EntityType } from '@/types/entity';
 import type { BattleSector } from '@/types/map';
 import { Faction } from '@/types/session';
 import { getAbilitiesFromBattleMap } from '@/utils/mapAbilities';
+import { canAttackSector, canPlaceShieldOnSector } from '@/utils/battleSectorRules';
 import { storeToRefs } from 'pinia';
 
 const props = withDefaults(defineProps<{
@@ -97,7 +98,17 @@ const isMyTurn = computed(() => {
     return sessionStore.isMyTurn(name);
 });
 
-const turnLabel = computed(() => isMyTurn.value ? 'Your turn' : "Opponent's turn");
+const turnLabel = computed(() => {
+    const hits = currentSession.value?.hitsThisTurn ?? 0;
+    if (isMyTurn.value) {
+        if (hits === 1) return 'Your turn (Second shot!)';
+        if (hits === 2) return 'Your turn (Third shot!)';
+        return 'Your turn';
+    }
+    if (hits === 1) return "Opponent's turn (Second shot!)";
+    if (hits === 2) return "Opponent's turn (Third shot!)";
+    return "Opponent's turn";
+});
 
 const myBattleMap = computed(() => {
     if (!currentSession.value || !myFaction.value) return null;
@@ -121,8 +132,18 @@ const selectedAbility = computed(() =>
 
 const ownMapPlacementPreview = computed(() => {
     if (!myBattleMap.value || !ownMapHoverAnchor.value) return null;
-    if (selectedAbility.value?.kind !== AbilityKind.DeployTieFighter) return null;
-    return getPlacementPreview(deployTieFighterEntity, ownMapHoverAnchor.value, myBattleMap.value);
+    if (selectedAbility.value?.kind === AbilityKind.DeployTieFighter) {
+        return getPlacementPreview(deployTieFighterEntity, ownMapHoverAnchor.value, myBattleMap.value);
+    }
+    if (selectedAbility.value?.kind === AbilityKind.PlaceShield) {
+        const sector = myBattleMap.value.sectors[ownMapHoverAnchor.value.y]?.[ownMapHoverAnchor.value.x];
+        const isValid = !!sector && canPlaceShieldOnSector(sector, selectedAbility.value.entityId);
+        return {
+            cells: [ownMapHoverAnchor.value],
+            isValid,
+        };
+    }
+    return null;
 });
 
 const ownMapPreviewCellKeys = computed(() =>
@@ -167,7 +188,12 @@ const markAbilityUsed = (entityId: string) => {
 };
 
 const handleMySectorHover = ({ x, y }: { x: number; y: number }) => {
-    if (selectedAbility.value?.kind !== AbilityKind.DeployTieFighter) {
+    const ability = selectedAbility.value;
+    if (!ability || ability.target !== 'own') {
+        ownMapHoverAnchor.value = null;
+        return;
+    }
+    if (ability.kind !== AbilityKind.DeployTieFighter && ability.kind !== AbilityKind.PlaceShield) {
         ownMapHoverAnchor.value = null;
         return;
     }
@@ -194,15 +220,38 @@ const handleMySectorClick = async ({
     const ability = selectedAbility.value;
 
     if (!playerName || !sessionId || isActionPending.value || !isMyTurn.value || !ability) return;
-    if (ability.target !== 'own' || ability.kind !== AbilityKind.DeployTieFighter) return;
-    if (!canDeployTieFighterAt(x, y)) return;
+    if (ability.target !== 'own') return;
 
-    isActionPending.value = true;
-    try {
-        await sessionStore.useAbility(sessionId, playerName, ability.kind, x, y);
-        markAbilityUsed(ability.entityId);
-    } finally {
-        isActionPending.value = false;
+    if (ability.kind === AbilityKind.DeployTieFighter) {
+        if (!canDeployTieFighterAt(x, y)) return;
+
+        isActionPending.value = true;
+        try {
+            await sessionStore.useAbility(sessionId, playerName, ability.kind, x, y);
+            markAbilityUsed(ability.entityId);
+        } finally {
+            isActionPending.value = false;
+        }
+        return;
+    }
+
+    if (ability.kind === AbilityKind.PlaceShield) {
+        if (!canPlaceShieldOnSector(sector, ability.entityId)) return;
+
+        isActionPending.value = true;
+        try {
+            await sessionStore.useAbility(
+                sessionId,
+                playerName,
+                ability.kind,
+                x,
+                y,
+                ability.entityId,
+            );
+            markAbilityUsed(ability.entityId);
+        } finally {
+            isActionPending.value = false;
+        }
     }
 };
 
@@ -223,8 +272,11 @@ const handleOpponentSectorClick = async ({
     if (!playerName || !sessionId || isActionPending.value || !isMyTurn.value) return;
 
     if (ability) {
-        if (ability.target !== 'opponent' || ability.kind !== AbilityKind.OpponentStrike) return;
-        if (!sector.hidden || sector.destroyed) return;
+        if (ability.target !== 'opponent') return;
+        if (ability.kind !== AbilityKind.OpponentStrike
+            && ability.kind !== AbilityKind.AirborneSuperiority
+            && ability.kind !== AbilityKind.Bombardment) return;
+        if (!canAttackSector(sector)) return;
 
         isActionPending.value = true;
         try {
@@ -236,7 +288,7 @@ const handleOpponentSectorClick = async ({
         return;
     }
 
-    if (!sector.hidden || sector.destroyed) return;
+    if (!canAttackSector(sector)) return;
 
     isActionPending.value = true;
     try {

@@ -14,11 +14,13 @@ import router from '@/router';
 import { useDraftStore } from '@/stores/draft.store';
 import { useSessionStore } from '@/stores/session.store';
 import { useUserStore } from '@/stores/user.store';
+import { useBattleMap } from '@/composables/useBattleMap';
 import { storeToRefs } from 'pinia';
 
 const sessionStore = useSessionStore();
 const userStore = useUserStore();
 const draftStore = useDraftStore();
+const { prepareBattleMapForBattle } = useBattleMap();
 const { battleMap, selectedFaction, ptsLimit } = storeToRefs(draftStore);
 
 const handleCreateSession = async (payload?: { sessionName: string }) => {
@@ -32,7 +34,7 @@ const handleCreateSession = async (payload?: { sessionName: string }) => {
         ptsLimit: ptsLimit.value,
         mapSize,
         playerName: userStore.currentUser.name,
-        battleMap: battleMap.value,
+        battleMap: prepareBattleMapForBattle(battleMap.value),
     });
 
     router.push(`/session/${session.id}`);

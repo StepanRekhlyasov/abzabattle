@@ -33,6 +33,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.RebelBattleMapJson).HasColumnType("longtext");
             entity.Property(e => e.ImperialBattleMapJson).HasColumnType("longtext");
             entity.Property(e => e.WinnerPlayerName).HasMaxLength(255);
+            entity.Property(e => e.HitsThisTurn).HasDefaultValue(0);
         });
     }
 }
