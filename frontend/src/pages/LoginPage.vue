@@ -34,9 +34,9 @@ const authStore = useAuthStore();
 const name = ref<string>('');
 const isLoading = ref<boolean>(false);
 const isGameOver = ref<boolean>(false);
-const { generateBattleMap, deployEntities } = useBattleMap();
+const { generateBattleMap, randomlyDeployEntities } = useBattleMap();
 const battleMap = ref<BattleMapType>(generateBattleMap({ size: { x: 4, y: 4 } }));
-deployEntities([
+randomlyDeployEntities([
   { type: EntityType.Letter, content: 'L' },
   { type: EntityType.Letter, content: 'O' },
   { type: EntityType.Letter, content: 'G' },
@@ -45,7 +45,7 @@ deployEntities([
 ], battleMap.value)
 const battleMapData = ref<BattleMapType>(battleMap.value);
 
-const onSectorClick = (sector: BattleSectorType) => {
+const onSectorClick = ({ sector }: { sector: BattleSectorType; x: number; y: number }) => {
     if (isLoading.value) {
         return;
     }

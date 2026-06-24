@@ -22,66 +22,117 @@
             <label class="item">
                 <span>Pick faction:</span>
                 <select v-model="selectedFaction" class="generic-input">
-                    <option value="imperial">
-                        Imperial
-                    </option>
+                    <option value="imperial">Imperial</option>
                     <option value="rebel">Rebel</option>
                 </select>
             </label>
-            <button @click="handleGenerateBattleMap" class="generic-button">Generate Battle Map</button>
+            <button @click="resetBattleMap" class="generic-button">Generate Battle Map</button>
         </div>
-        <div class="wrapper" style="margin-top: var(--space-sm);"  v-if="battleMap">
-            <battle-map :battle-map-data="battleMap" />
-            <div class="roster-wrapper">    
+        <div class="wrapper map-wrapper" v-if="battleMap">
+            <battle-map
+                :battle-map-data="battleMap"
+                :preview-cells="previewCellKeys"
+                :preview-valid="previewIsValid"
+                @sector-click="handleSectorClick"
+                @sector-hover="handleSectorHover"
+                @sector-leave="hoverAnchor = null"
+            />
+            <div class="roster-wrapper">
                 <deploy-roster />
-                <button @click="handleCreateSession" class="generic-button">Create Session</button>
+                <div class="buttons-wrapper">
+                    <button @click="resetBattleMap" class="generic-button">Reset Draft</button>
+                    <button @click="handleCreateSession" class="generic-button" :disabled="isPtsOverLimit">Create Session</button>
+                </div>
             </div>
         </div>
     </main-layout>
 </template>
 <script setup lang="ts">
 import MainLayout from '@/components/layouts/MainLayout.vue';
-import { ref } from 'vue';
-import { Faction } from '@/types/session';
+import { computed, ref, watch } from 'vue';
 import { useBattleMap } from '@/composables/useBattleMap';
-import type { BattleMap as BattleMapType } from '@/types/map';
 import BattleMap from '@/components/widgets/battle-map/BattleMap.vue';
-import DeployRoster from '@/components/widgets/battle-map/DeployRoster.vue';
+import DeployRoster from '@/components/widgets/roster/DeployRoster.vue';
 import { useDraftStore } from '@/stores/draft.store';
 import { storeToRefs } from 'pinia';
+import { getEntityDefinition } from '@/data/entityDefinitions';
+import { EntityRotation, EntityType, type Entity } from '@/types/entity';
 
 const draftStore = useDraftStore();
-const { battleMap, selectedFaction, ptsLimit } = storeToRefs(draftStore);
-const { generateBattleMap } = useBattleMap();
+const { battleMap, selectedFaction, ptsLimit, selectedEntity, selectedRotation, ptsRemaining, isPtsOverLimit } = storeToRefs(draftStore);
+const { generateBattleMap, placeEntity, getPlacementPreview } = useBattleMap();
 
-const battleMapSize = ref<string>('12');
+const battleMapSize = ref('12');
+const hoverAnchor = ref<{ x: number; y: number } | null>(null);
 
-const handleGenerateBattleMap = () => {
+const buildSelectedEntity = (withId = false): Entity | null => {
+    if (!selectedEntity.value || selectedEntity.value.type === EntityType.Empty) return null;
+    return {
+        ...selectedEntity.value,
+        ...(withId ? { id: crypto.randomUUID() } : {}),
+        rotation: selectedEntity.value.rotation ?? selectedRotation.value ?? EntityRotation.R0,
+    };
+};
+
+const selectedEntityCost = computed(() => {
+    const entity = buildSelectedEntity();
+    return entity ? getEntityDefinition(entity.type).ptsCost : 0;
+});
+
+const placementPreview = computed(() => {
+    const entity = buildSelectedEntity();
+    if (!battleMap.value || !entity || !hoverAnchor.value) return null;
+    return getPlacementPreview(entity, hoverAnchor.value, battleMap.value);
+});
+
+const previewCellKeys = computed(() => placementPreview.value?.cells.map(cell => `${cell.x},${cell.y}`) ?? []);
+const previewIsValid = computed(() => !!placementPreview.value?.isValid && ptsRemaining.value >= selectedEntityCost.value);
+
+const resetBattleMap = () => {
     battleMap.value = generateBattleMap({ size: { x: parseInt(battleMapSize.value), y: parseInt(battleMapSize.value) } });
-}
+    draftStore.setPtsSpent(0);
+    hoverAnchor.value = null;
+};
+
+const handleSectorHover = ({ x, y }: { x: number; y: number }) => {
+    hoverAnchor.value = buildSelectedEntity() ? { x, y } : null;
+};
+
+const handleSectorClick = ({ x, y }: { x: number; y: number }) => {
+    const entity = buildSelectedEntity(true);
+    if (!battleMap.value || !entity) return;
+    const definition = getEntityDefinition(entity.type);
+    if (ptsRemaining.value < definition.ptsCost || !placeEntity(entity, { x, y }, battleMap.value)) return;
+    draftStore.addPtsSpent(definition.ptsCost);
+    hoverAnchor.value = null;
+};
 
 const handleCreateSession = () => {
     console.log('createSession');
-}
+};
+
+watch(selectedFaction, () => {
+    resetBattleMap();
+    selectedEntity.value = null;
+});
 </script>
 <style scoped lang="scss">
 .wrapper {
-    display: flex;    align-items: flex-start;
+    display: flex;
+    align-items: flex-start;
     justify-content: flex-start;
     gap: 10px;
     width: 100%;
     background-color: var(--color-settings-background);
     border-radius: 10px;
     padding: var(--space-sm);
-    .item {
-        span {
-            color: #ffffff;
-            margin-right: var(--space-m);
-        }
-        input {
-            margin-right: var(--space-m);
-        }
+    .item span {
+        color: #ffffff;
+        margin-right: var(--space-m);
     }
+}
+.map-wrapper {
+    margin-top: var(--space-sm);
 }
 .roster-wrapper {
     display: flex;
@@ -91,5 +142,15 @@ const handleCreateSession = () => {
     gap: 10px;
     width: 100%;
     height: 100%;
+    .generic-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+.buttons-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
 </style>

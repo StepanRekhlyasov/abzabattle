@@ -1,37 +1,43 @@
 <template>
-    <div class="battle-grid">
-        <div v-for="row, rowIndex in battleMapData.sectors" :key="rowIndex" class="battle-grid-row">
-            <battle-sector 
-                v-for="sector, index in row" 
-                :key="index" 
-                :sector-data="sector" 
-                class="battle-grid-sector-item" 
-                @sector-click="onSectorClick(sector)"
+    <div class="battle-grid" @mouseleave="emit('sector-leave')">
+        <div v-for="(row, rowIndex) in battleMapData.sectors" :key="rowIndex" class="battle-grid-row">
+            <battle-sector
+                v-for="(sector, index) in row"
+                :key="index"
+                :sector-data="sector"
+                :preview-state="getPreviewState(index, rowIndex)"
                 :dense-mode="denseMode"
+                @sector-click="emit('sector-click', { sector, x: index, y: rowIndex })"
+                @sector-hover="emit('sector-hover', { x: index, y: rowIndex })"
             />
         </div>
     </div>
 </template>
 <script setup lang="ts">
-import type { BattleMap } from '@/types/map.ts';
-import BattleSector from './BattleSector.vue';
+import type { BattleMap } from '@/types/map';
 import type { BattleSector as BattleSectorType } from '@/types/map';
+import BattleSector from './BattleSector.vue';
 import { computed } from 'vue';
 
 const props = defineProps<{
     battleMapData: BattleMap;
+    previewCells?: string[];
+    previewValid?: boolean;
 }>();
 
 const emit = defineEmits<{
-    (e: 'sector-click', sector: BattleSectorType): void;
+    (e: 'sector-click', payload: { sector: BattleSectorType; x: number; y: number }): void;
+    (e: 'sector-hover', payload: { x: number; y: number }): void;
+    (e: 'sector-leave'): void;
 }>();
 
-const onSectorClick = (sector: BattleSectorType) => {
-    emit('sector-click', sector);
-}
-const denseMode = computed(() => {
-    return props.battleMapData.sectors.length > 12;
-});
+const denseMode = computed(() => props.battleMapData.sectors.length > 12);
+
+const getPreviewState = (x: number, y: number): 'valid' | 'invalid' | null => {
+    const key = `${x},${y}`;
+    if (!props.previewCells?.includes(key)) return null;
+    return props.previewValid ? 'valid' : 'invalid';
+};
 </script>
 <style scoped lang="scss">
 .battle-grid {

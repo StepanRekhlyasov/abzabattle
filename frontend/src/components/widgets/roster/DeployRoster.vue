@@ -6,20 +6,18 @@
             <img src="@/assets/icons/rebel.svg" alt="Rebel" v-if="selectedFaction === 'rebel'" width="50"/>
         </div>
         <div class="deploy-roster-title">
-            Your have: {{ ptsLimit }} PTS Left
+            You have:
+            <span class="pts-remaining" :class="{ 'pts-remaining--negative': ptsRemaining < 0 }">{{ ptsRemaining }} PTS Left</span>
         </div>
-        <imperial-roster v-if="selectedFaction === 'imperial'" />
-        <rebel-roster v-if="selectedFaction === 'rebel'" />
+        <faction-roster v-if="selectedFaction" :faction="selectedFaction" />
     </div>
 </template>
 <script setup lang="ts">
-import ImperialRoster from './ImperialRoster.vue';
-import RebelRoster from './RebelRoster.vue';
+import FactionRoster from './FactionRoster.vue';
 import { useDraftStore } from '@/stores/draft.store';
 import { storeToRefs } from 'pinia';
 
-const draftStore = useDraftStore();
-const { selectedFaction, ptsLimit } = storeToRefs(draftStore);
+const { selectedFaction, ptsRemaining } = storeToRefs(useDraftStore());
 </script>
 <style scoped lang="scss">
 .deploy-roster {
@@ -36,5 +34,9 @@ const { selectedFaction, ptsLimit } = storeToRefs(draftStore);
     font-size: 20px;
     font-weight: 500;
     color: #ffffff;
+}
+.pts-remaining {
+    color: #ffffff;
+    &--negative { color: var(--color-sector-destroyed); }
 }
 </style>
