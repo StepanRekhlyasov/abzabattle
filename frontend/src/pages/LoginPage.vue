@@ -28,55 +28,38 @@ import { EntityType } from '@/types/entity';
 import { ref } from 'vue';
 import { useAuthStore } from '@/stores/auth.store';
 import { toast } from 'vuetify-sonner';
+import { useBattleMap } from '@/composables/useBattleMap';
 
 const authStore = useAuthStore();
 const name = ref<string>('');
 const isLoading = ref<boolean>(false);
 const isGameOver = ref<boolean>(false);
-const battleMapData = ref<BattleMapType>({
-    sectors: [
-        [
-            { entity: { id: '1', type: EntityType.Empty }, hidden: true, destroyed: false },
-            { entity: { id: '1', type: EntityType.Letter, content: 'L' }, hidden: true, destroyed: false },
-            { entity: { id: '1', type: EntityType.Empty }, hidden: true, destroyed: false },
-            { entity: { id: '1', type: EntityType.Empty }, hidden: true, destroyed: false },
-        ],
-        [
-            { entity: { id: '1', type: EntityType.Letter, content: 'O' }, hidden: true, destroyed: false },
-            { entity: { id: '1', type: EntityType.Empty }, hidden: true, destroyed: false },
-            { entity: { id: '1', type: EntityType.Letter, content: 'G' }, hidden: true, destroyed: false },
-            { entity: { id: '1', type: EntityType.Empty }, hidden: true, destroyed: false },
-        ],
-        [
-            { entity: { id: '1', type: EntityType.Empty }, hidden: true, destroyed: false },
-            { entity: { id: '1', type: EntityType.Empty }, hidden: true, destroyed: false },
-            { entity: { id: '1', type: EntityType.Empty }, hidden: true, destroyed: false },
-            { entity: { id: '1', type: EntityType.Letter, content: 'I' }, hidden: true, destroyed: false },
-        ],
-        [
-            { entity: { id: '1', type: EntityType.Letter, content: 'N' }, hidden: true, destroyed: false },
-            { entity: { id: '1', type: EntityType.Empty }, hidden: true, destroyed: false },
-            { entity: { id: '1', type: EntityType.Empty }, hidden: true, destroyed: false },
-            { entity: { id: '1', type: EntityType.Empty }, hidden: true, destroyed: false },
-        ],
-    ]
-});
+const { generateBattleMap, deployEntities } = useBattleMap();
+const battleMap = ref<BattleMapType>(generateBattleMap({ size: { x: 4, y: 4 } }));
+deployEntities([
+  { type: EntityType.Letter, content: 'L' },
+  { type: EntityType.Letter, content: 'O' },
+  { type: EntityType.Letter, content: 'G' },
+  { type: EntityType.Letter, content: 'I' },
+  { type: EntityType.Letter, content: 'N' },
+], battleMap.value)
+const battleMapData = ref<BattleMapType>(battleMap.value);
 
 const onSectorClick = (sector: BattleSectorType) => {
     if (isLoading.value) {
         return;
     }
 
-    if(sector.hidden === false && sector.entity.type === EntityType.Letter) {
+    if(sector.hidden === false && sector.entity.content) {
         sector.destroyed = true;
     } else {
         sector.hidden = false;
     }
-    checkGameOver();
     if(isGameOver.value) {
         handleSubmit();
         return;
     }
+    checkGameOver();
 }
 
 const handleSubmit = async () => {
@@ -103,11 +86,11 @@ const checkGameOver = () => {
         battleMapData.value = {
             sectors: [
                 [
-                    { entity: { id: '1', type: EntityType.Letter, content: 'L' }, hidden: false, destroyed: false },
-                    { entity: { id: '1', type: EntityType.Letter, content: 'O' }, hidden: false, destroyed: false },
-                    { entity: { id: '1', type: EntityType.Letter, content: 'G' }, hidden: false, destroyed: false },
-                    { entity: { id: '1', type: EntityType.Letter, content: 'I' }, hidden: false, destroyed: false },
-                    { entity: { id: '1', type: EntityType.Letter, content: 'N' }, hidden: false, destroyed: false },
+                    { entity: { type: EntityType.Letter, content: 'L' }, hidden: false, destroyed: false },
+                    { entity: { type: EntityType.Letter, content: 'O' }, hidden: false, destroyed: false },
+                    { entity: { type: EntityType.Letter, content: 'G' }, hidden: false, destroyed: false },
+                    { entity: { type: EntityType.Letter, content: 'I' }, hidden: false, destroyed: false },
+                    { entity: { type: EntityType.Letter, content: 'N' }, hidden: false, destroyed: false },
                 ]
             ]
         }

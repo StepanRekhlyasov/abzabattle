@@ -4,8 +4,8 @@ export enum EntityType {
 }
 
 interface BaseEntity<T extends EntityType> {
-    id: string;
     type: T;
+    id?: string;
     shouldFetch?: boolean;
     content?: string;
 }
