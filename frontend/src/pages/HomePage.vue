@@ -1,7 +1,9 @@
 <template>
     <main-layout>
-        <h1>Home</h1>
+        <h1>Home Page</h1>
+        <h2>Sessions</h2>
         <session-list />
+        <h2>Create Session</h2>
     </main-layout>
 </template>
 <script setup lang="ts">
