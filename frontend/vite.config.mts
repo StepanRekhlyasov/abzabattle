@@ -52,19 +52,8 @@ export default defineConfig({
   },
   server: {
     host: true,
-    port: 8000,
+    port: 80,
     allowedHosts: ['abzabza.ru'],
     watch: { usePolling: true },
-    proxy: {
-      '/api': {
-        target: 'http://backend:8080',
-        changeOrigin: true,
-      },
-      '/phpmyadmin': {
-        target: 'http://phpmyadmin:80',
-        changeOrigin: true,
-        rewrite: (path: string) => path.replace(/^\/phpmyadmin\/?/, '/'),
-      },
-    },
   },
 })

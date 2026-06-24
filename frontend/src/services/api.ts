@@ -1,5 +1,6 @@
 import axios from "axios"
 import { toast } from "vuetify-sonner";
+import { Errors } from "./errors";
 
 const api = axios.create({
     baseURL: '/api',
@@ -21,7 +22,7 @@ error => {
                 toast.error(error)
             })
         } else {
-            toast.error(detail ?? error.response?.statusText)
+            toast.error(detail ?? Errors[error.response?.status as unknown as keyof typeof Errors])
         }
     }
     return Promise.reject(error)

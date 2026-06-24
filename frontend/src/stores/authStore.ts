@@ -9,12 +9,8 @@ export const useAuthStore = defineStore('auth', {
     }),
     actions: {
         async login(name: string) {
-            // const response = await api.post('/login', { name });
-            // this.currentUser = response.data;
-            this.currentUser = {
-                id: 'Xaxa',
-                name: name
-            };
+            const response = await api.post('/login', { name });
+            this.currentUser = response.data;
             router.push('/');
         },
         logout() {
