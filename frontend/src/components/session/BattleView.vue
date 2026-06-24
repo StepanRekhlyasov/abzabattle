@@ -17,6 +17,13 @@
                     @sector-click="handleOpponentSectorClick"
                 />
             </div>
+            <div v-if="myAbilities.length" class="special-abilities">
+                <ability
+                    v-for="ability in myAbilities"
+                    :key="ability.entityId"
+                    :ability="ability"
+                />
+            </div>
         </div>
     </div>
 </template>
@@ -24,10 +31,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import BattleMap from '@/components/widgets/battle-map/BattleMap.vue';
+import Ability from '@/components/widgets/Ability.vue';
 import { useSessionStore } from '@/stores/session.store';
 import { useUserStore } from '@/stores/user.store';
 import type { BattleSector } from '@/types/map';
 import { Faction } from '@/types/session';
+import { getAbilitiesFromBattleMap } from '@/utils/mapAbilities';
 import { storeToRefs } from 'pinia';
 
 const sessionStore = useSessionStore();
@@ -62,6 +71,8 @@ const opponentBattleMap = computed(() => {
         ? currentSession.value.imperial.battleMap
         : currentSession.value.rebel.battleMap;
 });
+
+const myAbilities = computed(() => getAbilitiesFromBattleMap(myBattleMap.value));
 
 const handleOpponentSectorClick = async ({
     sector,
@@ -132,5 +143,16 @@ const handleOpponentSectorClick = async ({
     color: #ffffff;
     margin: 0;
     font-size: 18px;
+}
+
+.special-abilities {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    width: 100%;
+    flex-wrap: wrap;
+    color: #ffffff;
+    padding: var(--space-sm);
 }
 </style>

@@ -2,8 +2,8 @@
     <div class="deployment-unit" :class="{ selected: isSelected }" @click="handleClick">
         <span class="pts-cost">{{ definition.ptsCost }} PTS</span>
         <span class="item-name">{{ unitAsset.name }}</span>
-        <span v-if="isSelected" class="rotation-badge">{{ draftStore.selectedRotation }}°</span>
-        <button v-if="isSelected" type="button" class="rotate-button" @click="handleRotate">Rotate</button>
+        <span class="rotation-badge" v-if="abilityDefinition">Ability: {{ abilityDefinition?.name }}</span>
+        <button v-if="isSelected" type="button" class="rotate-button" @click="handleRotate">{{ draftStore.selectedRotation }}° - Rotate</button>
         <img :src="unitAsset.image" :alt="unitAsset.name" />
     </div>
 </template>
@@ -13,13 +13,14 @@ import type { EntityType } from '@/types/entity';
 import { useDraftStore } from '@/stores/draft.store';
 import { getEntityDefinition } from '@/data/entityDefinitions';
 import { getDeploymentUnitAsset } from '@/data/deploymentUnits';
+import { getAbilityDefinition } from '@/data/unitAbilities';
 
 const props = defineProps<{ entityType: EntityType }>();
 const draftStore = useDraftStore();
 const unitAsset = computed(() => getDeploymentUnitAsset(props.entityType));
 const definition = computed(() => getEntityDefinition(props.entityType));
 const isSelected = computed(() => draftStore.selectedEntity?.type === props.entityType);
-
+const abilityDefinition = computed(() => getAbilityDefinition(props.entityType));
 const handleClick = () => {
     draftStore.selectEntity({
         type: props.entityType,
@@ -41,7 +42,7 @@ const handleRotate = (event: MouseEvent) => {
     position: relative;
     border-radius: 10px;
     overflow: hidden;
-    img { width: 100%; height: 100%; object-fit: contain; }
+    img { height: 100%; object-fit: contain; margin: auto; }
     &.selected { background-color: var(--color-sector-hidden-hover); }
     .pts-cost, .item-name {
         position: absolute;

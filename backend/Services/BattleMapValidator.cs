@@ -85,6 +85,7 @@ public static class BattleMapValidator
         {
             ["star-destroyer"] = 50,
             ["mon-calamari"] = 30,
+            ["tie-fighter"] = 10,
         };
 
         var spent = 0;

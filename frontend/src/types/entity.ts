@@ -12,6 +12,7 @@ export enum EntityType {
     Empty = 'empty',
     StarDestroyer = 'star-destroyer',
     MonCalamari = 'mon-calamari',
+    TieFighter = 'tie-fighter',
 }
 
 interface BaseEntity<T extends EntityType> {
@@ -27,6 +28,7 @@ export interface EmptyEntity extends BaseEntity<EntityType.Empty> {}
 export type RotatableEntity<T extends EntityType> = BaseEntity<T> & { rotation: EntityRotation };
 export type StarDestroyerEntity = RotatableEntity<EntityType.StarDestroyer>;
 export type MonCalamariEntity = RotatableEntity<EntityType.MonCalamari>;
+export type TieFighterEntity = RotatableEntity<EntityType.TieFighter>;
 
 export type Entity<T extends EntityType = EntityType> = EntityTypeMap[T & keyof EntityTypeMap];
 
@@ -35,6 +37,7 @@ type EntityTypeMap = {
     [EntityType.Empty]: EmptyEntity;
     [EntityType.StarDestroyer]: StarDestroyerEntity;
     [EntityType.MonCalamari]: MonCalamariEntity;
+    [EntityType.TieFighter]: TieFighterEntity;
 };
 
 export type EntityDefinition = {

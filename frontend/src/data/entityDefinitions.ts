@@ -25,6 +25,7 @@ export const ENTITY_DEFINITIONS: Record<EntityType, EntityDefinition | null> = {
     [EntityType.Letter]: { ptsCost: 0, footprint: [{ x: 0, y: 0 }] },
     [EntityType.StarDestroyer]: { ptsCost: 50, footprint: STAR_DESTROYER_FOOTPRINT, content: 'DS' },
     [EntityType.MonCalamari]: { ptsCost: 30, footprint: MON_CALAMARI_FOOTPRINT, content: 'MC' },
+    [EntityType.TieFighter]: { ptsCost: 10, footprint: [{ x: 0, y: 0 }], content: 'TF' },
 };
 
 export function getEntityDefinition(type: EntityType): EntityDefinition {
