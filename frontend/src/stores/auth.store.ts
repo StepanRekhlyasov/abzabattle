@@ -3,6 +3,7 @@ import api from "@/services/api"
 import router from "@/router";
 import { useUserStore } from "./user.store";
 import { resetAllStores } from "@/services/app";
+import { connectWs } from "@/services/ws";
 
 export const useAuthStore = defineStore('auth', {
     actions: {
@@ -10,11 +11,12 @@ export const useAuthStore = defineStore('auth', {
             const response = await api.post<{ success: boolean }>('/login', { name });
             if (response.data.success) {
                 await useUserStore().getUser(name);
+                await connectWs(name);
                 router.push('/');
             }
         },
         logout() {
-            resetAllStores();
+            void resetAllStores();
             router.push('/login');
         },
     },

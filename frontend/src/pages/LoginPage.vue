@@ -2,7 +2,18 @@
 <blank-layout>
     <div class="wrapper" style="background-color: #000;">
         <div class="login-form">
-            <input type="text" v-model="name" placeholder="Enter your name" class="generic-input" maxlength="10" @keyup.enter="handleSubmit"/>
+            <div v-if="isLoading" class="login-form__loader">
+                <v-progress-circular indeterminate color="primary" size="48" />
+            </div>
+            <input
+                type="text"
+                v-model="name"
+                placeholder="Enter your name"
+                class="generic-input"
+                maxlength="10"
+                :disabled="isLoading"
+                @keyup.enter="handleSubmit"
+            />
             <battle-map :battle-map-data="battleMapData" @sector-click="onSectorClick" />
         </div>
     </div>
@@ -20,6 +31,7 @@ import { toast } from 'vuetify-sonner';
 
 const authStore = useAuthStore();
 const name = ref<string>('');
+const isLoading = ref<boolean>(false);
 const isGameOver = ref<boolean>(false);
 const battleMapData = ref<BattleMapType>({
     sectors: [
@@ -51,6 +63,10 @@ const battleMapData = ref<BattleMapType>({
 });
 
 const onSectorClick = (sector: BattleSectorType) => {
+    if (isLoading.value) {
+        return;
+    }
+
     if(sector.hidden === false && sector.entity.type === EntityType.Letter) {
         sector.destroyed = true;
     } else {
@@ -63,12 +79,22 @@ const onSectorClick = (sector: BattleSectorType) => {
     }
 }
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
+    if (isLoading.value) {
+        return;
+    }
+
     if(name.value.length === 0) {
         toast.error('Name is required');
         return;
     }
-    authStore.login(name.value);
+
+    isLoading.value = true;
+    try {
+        await authStore.login(name.value);
+    } finally {
+        isLoading.value = false;
+    }
 }
 
 const checkGameOver = () => {
@@ -95,9 +121,21 @@ const checkGameOver = () => {
     padding: var(--space-m);
     border-radius: 10px;
     .login-form {
+        position: relative;
         display: flex;
         flex-direction: column;
         gap: 10px;
+
+        &__loader {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.6);
+        }
     }
 }
 </style>

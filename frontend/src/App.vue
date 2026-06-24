@@ -19,8 +19,8 @@ const userStore = useUserStore();
 const authStore = useAuthStore();
 
 onMounted(async () => {
-  if(userStore.currentUser) {
+  if (userStore.currentUser) {
     await authStore.login(userStore.currentUser.name);
-  } 
+  }
 })
 </script>

@@ -60,6 +60,11 @@ export default defineConfig({
         target: 'http://backend:8080',
         changeOrigin: true,
       },
+      '/hubs': {
+        target: 'http://backend:8080',
+        changeOrigin: true,
+        ws: true,
+      },
       '/phpmyadmin': {
         target: 'http://phpmyadmin:80',
         changeOrigin: true,

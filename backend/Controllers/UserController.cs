@@ -1,5 +1,6 @@
 using backend.Data;
 using backend.Dtos;
+using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,8 +8,14 @@ namespace backend.Controllers;
 
 [ApiController]
 [Route("api")]
-public class UserController(AppDbContext db) : ControllerBase
+public class UserController(AppDbContext db, PresenceService presence) : ControllerBase
 {
+    [HttpGet("users/online")]
+    public ActionResult<IEnumerable<UserResponse>> GetOnlineUsers()
+    {
+        return Ok(presence.GetOnlineUsers().Select(name => new UserResponse { Name = name }));
+    }
+
     [HttpGet("user")]
     public async Task<ActionResult<UserResponse>> GetByName([FromQuery] string name)
     {
