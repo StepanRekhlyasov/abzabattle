@@ -4,9 +4,14 @@ import type { Player } from "./player";
 export type Session = {
     id: string;
     name: string;
-    battleMap: BattleMap;
-    rebel: Player | null;
-    imperial: Player | null;
+    rebel: {
+        player: Player;
+        battleMap: BattleMap;
+    }
+    imperial: {
+        player: Player;
+        battleMap: BattleMap;
+    }
     currentTurn: Faction;
     status: SessionStatus;
 }
