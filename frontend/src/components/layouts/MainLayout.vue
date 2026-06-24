@@ -1,6 +1,6 @@
 <template>
     <div class="main-layout-header">
-        <p>Current user: {{ authStore.currentUser?.name }}</p>
+        <p>Current user: {{ userStore.currentUser?.name }}</p>
         <button @click="authStore.logout" class="generic-button transparent-button">
             <FontAwesomeIcon :icon="faRightFromBracket" />
         </button>
@@ -12,11 +12,12 @@
     </div>
 </template>
 <script setup lang="ts">
-import { useAuthStore } from '@/stores/authStore';
+import { useUserStore } from '@/stores/user.store';
+import { useAuthStore } from '@/stores/auth.store';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons'
 
-
+const userStore = useUserStore();
 const authStore = useAuthStore();
 </script>
 <style scoped lang="scss">

@@ -33,7 +33,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - DOTNET_USE_POLLING_FILE_WATCHER=true
-      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=task4;User=app;Password=app;
+      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=abzabattle;User=app;Password=app;
       - App__PublicUrl=https://abzabza.ru
     depends_on:
       mysql:
@@ -54,13 +54,14 @@ services:
         - path: ./frontend/vite.config.mts
           target: /app/vite.config.mts
           action: restart
-    expose:
-      - "80"
+    ports:
+      - "8000:80"
     depends_on:
       - backend
-
+      - phpmyadmin
+  
   phpmyadmin:
-    build: ./phpmyadmin
+    image: phpmyadmin/phpmyadmin
     environment:
       PMA_HOST: mysql
       PMA_USER: app
@@ -69,17 +70,6 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-
-  gateway:
-    image: nginx:stable-alpine
-    ports:
-      - "8000:80"
-    volumes:
-      - ./gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    depends_on:
-      - frontend
-      - backend
-      - phpmyadmin
 
 volumes:
   mysql_data:

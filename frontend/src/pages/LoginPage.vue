@@ -15,7 +15,7 @@ import BattleMap from '@/components/widgets/battle-map/BattleMap.vue';
 import type { BattleMap as BattleMapType, BattleSector as BattleSectorType } from '@/types/map';
 import { EntityType } from '@/types/entity';
 import { ref } from 'vue';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore } from '@/stores/auth.store';
 import { toast } from 'vuetify-sonner';
 
 const authStore = useAuthStore();
