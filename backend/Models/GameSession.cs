@@ -13,4 +13,5 @@ public class GameSession
     public string? ImperialPlayerName { get; set; }
     public string? RebelBattleMapJson { get; set; }
     public string? ImperialBattleMapJson { get; set; }
+    public string? WinnerPlayerName { get; set; }
 }

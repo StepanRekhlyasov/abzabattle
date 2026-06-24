@@ -1,8 +1,10 @@
 import type { BattleMap } from '@/types/map';
 import { Faction, type Session } from '@/types/session';
+import type { Player } from '@/types/player';
 import { defineStore } from 'pinia';
 import * as sessionApi from '@/services/sessionApi';
 import type { CreateSessionPayload } from '@/services/sessionApi';
+import { useUserStore } from '@/stores/user.store';
 
 function getPlayerFaction(session: Session, playerName: string): Faction | null {
     if (session.rebel.player?.name === playerName) return Faction.Rebel;
@@ -12,6 +14,28 @@ function getPlayerFaction(session: Session, playerName: string): Faction | null 
 
 function isSessionFull(session: Session) {
     return !!session.rebel.player && !!session.imperial.player;
+}
+
+function syncCurrentUserStats(session: Session) {
+    const userStore = useUserStore();
+    const currentUser = userStore.currentUser;
+    if (!currentUser || session.status !== 'finished') return;
+
+    const player = getPlayerInSession(session, currentUser.name);
+    if (!player) return;
+
+    userStore.setUser({
+        ...currentUser,
+        wins: player.wins,
+        loses: player.loses,
+        totalGames: player.totalGames,
+    });
+}
+
+function getPlayerInSession(session: Session, playerName: string): Player | null {
+    if (session.rebel.player?.name === playerName) return session.rebel.player;
+    if (session.imperial.player?.name === playerName) return session.imperial.player;
+    return null;
 }
 
 export const useSessionStore = defineStore('session', {
@@ -57,6 +81,7 @@ export const useSessionStore = defineStore('session', {
         commitSession(session: Session) {
             this.currentSession = session;
             this.applySessionUpdate(session);
+            syncCurrentUserStats(session);
         },
         async loadSession(id: string, playerName?: string) {
             const session = await sessionApi.fetchSession(id, playerName);
@@ -103,6 +128,9 @@ export const useSessionStore = defineStore('session', {
         },
         isBattlePhase() {
             return this.currentSession?.status === 'in_progress';
+        },
+        isFinishedPhase() {
+            return this.currentSession?.status === 'finished';
         },
     },
 });

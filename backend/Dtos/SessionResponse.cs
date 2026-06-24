@@ -12,4 +12,5 @@ public class SessionResponse
     public string Status { get; set; } = null!;
     public bool CanJoin { get; set; }
     public string CreatorPlayerName { get; set; } = null!;
+    public string? WinnerPlayerName { get; set; }
 }

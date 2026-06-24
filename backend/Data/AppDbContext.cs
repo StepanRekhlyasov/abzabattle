@@ -15,6 +15,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.ToTable("users");
             entity.HasKey(e => e.Name);
             entity.Property(e => e.Name).HasMaxLength(255);
+            entity.Property(e => e.Wins).HasDefaultValue(0);
+            entity.Property(e => e.Loses).HasDefaultValue(0);
+            entity.Property(e => e.TotalGames).HasDefaultValue(0);
         });
 
         modelBuilder.Entity<GameSession>(entity =>
@@ -29,6 +32,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.ImperialPlayerName).HasMaxLength(255);
             entity.Property(e => e.RebelBattleMapJson).HasColumnType("longtext");
             entity.Property(e => e.ImperialBattleMapJson).HasColumnType("longtext");
+            entity.Property(e => e.WinnerPlayerName).HasMaxLength(255);
         });
     }
 }

@@ -9,7 +9,12 @@ function registerHandlers(hub: signalR.HubConnection) {
         useSessionStore().setOnlineSessions(sessions)
     })
     hub.on('SessionUpdated', (session: Session) => {
-        useSessionStore().applySessionUpdate(session)
+        const sessionStore = useSessionStore();
+        if (sessionStore.currentSession?.id === session.id) {
+            sessionStore.commitSession(session);
+            return;
+        }
+        sessionStore.applySessionUpdate(session);
     })
 }
 

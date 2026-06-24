@@ -24,5 +24,12 @@ const deploymentUnits = computed(() => getDeploymentUnitsByFaction(props.faction
     max-height: calc(100vh - 268px);
     overflow: auto;
     border-radius: 10px;
+    .roster-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+    }
 }
 </style>

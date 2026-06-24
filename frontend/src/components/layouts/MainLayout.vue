@@ -15,6 +15,9 @@
         <slot></slot>
     </div>
     <div class="main-layout-footer">
+        <p style="text-align: center;">Wins: {{ userStore.currentUser?.wins ?? 0 }}</p>
+        <p style="text-align: center;">Loses: {{ userStore.currentUser?.loses ?? 0 }}</p>
+        <p style="text-align: center;">Total games: {{ userStore.currentUser?.totalGames ?? 0 }}</p>
     </div>
 </template>
 <script setup lang="ts">
@@ -37,7 +40,7 @@ const authStore = useAuthStore();
     height: 50px;
 }
 .main-layout-content {
-    height: calc(100% - 50px);
+    height: calc(100% - 100px);
     background-image: url('@/assets/images/background.png');
     background-size: cover;    
     display: flex;
@@ -53,5 +56,13 @@ const authStore = useAuthStore();
     &:hover {
         color: var(--color-sector-exposed);
     }
+}
+.main-layout-footer {
+    height: 50px;
+    background-color: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
 }
 </style>

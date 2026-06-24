@@ -76,6 +76,7 @@ import { useDraftStore } from '@/stores/draft.store';
 import { EntityRotation, EntityType, type Entity } from '@/types/entity';
 import type { Faction } from '@/types/session';
 import { storeToRefs } from 'pinia';
+import { useUserStore } from '@/stores/user.store';
 
 const props = withDefaults(defineProps<{
     readOnlySettings?: boolean;
@@ -94,7 +95,7 @@ const props = withDefaults(defineProps<{
     actionLabel: 'Create Session',
     actionDisabled: false,
     showResetButton: true,
-    autoGenerate: false,
+    autoGenerate: true,
 });
 
 const emit = defineEmits<{
@@ -103,10 +104,12 @@ const emit = defineEmits<{
 
 const draftStore = useDraftStore();
 const { battleMap, selectedFaction, ptsLimit, selectedEntity, selectedRotation, ptsRemaining, isPtsOverLimit } = storeToRefs(draftStore);
-const { generateBattleMap, placeEntity, getPlacementPreview } = useBattleMap();
 
+const { generateBattleMap, placeEntity, getPlacementPreview } = useBattleMap();
+const userStore = useUserStore();
+const { currentUser } = storeToRefs(userStore);
 const battleMapSize = ref(String(props.fixedMapSize ?? 12));
-const sessionName = ref('');
+const sessionName = ref(currentUser.value?.name + '\'s session');
 const hoverAnchor = ref<{ x: number; y: number } | null>(null);
 
 const isActionDisabled = computed(() =>

@@ -12,7 +12,10 @@ public static class SessionMapper
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    public static SessionResponse ToResponse(GameSession session, string? viewerPlayerName = null)
+    public static SessionResponse ToResponse(
+        GameSession session,
+        string? viewerPlayerName = null,
+        IReadOnlyDictionary<string, User>? users = null)
     {
         var rebelOccupied = !string.IsNullOrWhiteSpace(session.RebelPlayerName);
         var imperialOccupied = !string.IsNullOrWhiteSpace(session.ImperialPlayerName);
@@ -31,7 +34,7 @@ public static class SessionMapper
             Rebel = new SessionSideResponse
             {
                 Player = rebelOccupied
-                    ? new PlayerResponse { Name = session.RebelPlayerName! }
+                    ? ToPlayer(session.RebelPlayerName!, users)
                     : null,
                 BattleMap = MapBattleMap(
                     session.RebelBattleMapJson,
@@ -40,7 +43,7 @@ public static class SessionMapper
             Imperial = new SessionSideResponse
             {
                 Player = imperialOccupied
-                    ? new PlayerResponse { Name = session.ImperialPlayerName! }
+                    ? ToPlayer(session.ImperialPlayerName!, users)
                     : null,
                 BattleMap = MapBattleMap(
                     session.ImperialBattleMapJson,
@@ -49,11 +52,34 @@ public static class SessionMapper
             CurrentTurn = session.CurrentTurn,
             Status = session.Status,
             CreatorPlayerName = session.CreatorPlayerName,
+            WinnerPlayerName = session.WinnerPlayerName,
             CanJoin = session.Status == SessionStatus.Pending &&
                       (!rebelOccupied || !imperialOccupied) &&
                       !viewerIsParticipant,
         };
     }
+
+    public static PlayerResponse ToPlayer(string playerName, IReadOnlyDictionary<string, User>? users = null)
+    {
+        User? user = null;
+        users?.TryGetValue(playerName, out user);
+
+        return new PlayerResponse
+        {
+            Name = playerName,
+            Wins = user?.Wins ?? 0,
+            Loses = user?.Loses ?? 0,
+            TotalGames = user?.TotalGames ?? 0,
+        };
+    }
+
+    public static UserResponse ToUserResponse(User user) => new()
+    {
+        Name = user.Name,
+        Wins = user.Wins,
+        Loses = user.Loses,
+        TotalGames = user.TotalGames,
+    };
 
     private static JsonElement? MapBattleMap(string? battleMapJson, bool? hideUnits)
     {

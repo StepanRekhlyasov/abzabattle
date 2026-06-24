@@ -9,6 +9,7 @@ builder.Services.AddControllers();
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<PresenceService>();
 builder.Services.AddSingleton<SessionConnectionService>();
+builder.Services.AddScoped<SessionUserService>();
 builder.Services.AddScoped<SessionBroadcastService>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(

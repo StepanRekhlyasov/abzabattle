@@ -14,12 +14,13 @@ export type Session = {
     rebel: SessionSide;
     imperial: SessionSide;
     currentTurn: Faction;
-    status: SessionStatus;
+    status: SessionStatusEnum;
     canJoin?: boolean;
     creatorPlayerName: string;
+    winnerPlayerName?: string | null;
 }
 
-export enum SessionStatus {
+export enum SessionStatusEnum {
     Pending = 'pending',
     InProgress = 'in_progress',
     Finished = 'finished',

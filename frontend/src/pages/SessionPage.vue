@@ -20,6 +20,10 @@
                 @action="handleStartBattle"
             />
             <battle-view v-else-if="sessionStore.isBattlePhase()" />
+            <victory-view
+                v-else-if="sessionStore.isFinishedPhase() && currentSession.winnerPlayerName"
+                :winner-name="currentSession.winnerPlayerName"
+            />
         </template>
     </main-layout>
 </template>
@@ -30,6 +34,7 @@ import { useRoute } from 'vue-router';
 import MainLayout from '@/components/layouts/MainLayout.vue';
 import BattleView from '@/components/session/BattleView.vue';
 import DeployPanel from '@/components/session/DeployPanel.vue';
+import VictoryView from '@/components/session/VictoryView.vue';
 import WaitingView from '@/components/session/WaitingView.vue';
 import { useDraftStore } from '@/stores/draft.store';
 import { useSessionStore } from '@/stores/session.store';

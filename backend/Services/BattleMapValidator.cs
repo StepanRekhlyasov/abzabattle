@@ -38,12 +38,53 @@ public static class BattleMapValidator
         return false;
     }
 
+    public static bool HasRemainingUnits(string battleMapJson)
+    {
+        using var document = JsonDocument.Parse(battleMapJson);
+        if (!document.RootElement.TryGetProperty("sectors", out var sectors) ||
+            sectors.ValueKind != JsonValueKind.Array)
+        {
+            return false;
+        }
+
+        foreach (var row in sectors.EnumerateArray())
+        {
+            if (row.ValueKind != JsonValueKind.Array)
+            {
+                continue;
+            }
+
+            foreach (var sector in row.EnumerateArray())
+            {
+                if (!sector.TryGetProperty("entity", out var entity) ||
+                    !entity.TryGetProperty("type", out var type))
+                {
+                    continue;
+                }
+
+                if (type.GetString() is not { } entityType || entityType == "empty")
+                {
+                    continue;
+                }
+
+                var destroyed = sector.TryGetProperty("destroyed", out var destroyedProperty) &&
+                                destroyedProperty.GetBoolean();
+                if (!destroyed)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public static int CalculatePtsSpent(string battleMapJson)
     {
         var ptsByType = new Dictionary<string, int>(StringComparer.Ordinal)
         {
             ["star-destroyer"] = 50,
-            ["mon-calamari"] = 50,
+            ["mon-calamari"] = 30,
         };
 
         var spent = 0;

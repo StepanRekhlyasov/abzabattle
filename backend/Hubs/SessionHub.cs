@@ -6,7 +6,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace backend.Hubs;
 
-public class SessionHub(AppDbContext db, SessionConnectionService connections) : Hub
+public class SessionHub(
+    AppDbContext db,
+    SessionConnectionService connections,
+    SessionUserService sessionUsers) : Hub
 {
     public override async Task OnConnectedAsync()
     {
@@ -23,7 +26,8 @@ public class SessionHub(AppDbContext db, SessionConnectionService connections) :
             .Where(s => s.Status == SessionStatus.Pending || s.Status == SessionStatus.InProgress)
             .OrderByDescending(s => s.Id)
             .ToListAsync();
-        var snapshot = sessions.Select(s => SessionMapper.ToResponse(s, viewer)).ToList();
+        var users = await sessionUsers.GetUsersForSessionsAsync(sessions);
+        var snapshot = sessions.Select(s => SessionMapper.ToResponse(s, viewer, users)).ToList();
         await Clients.Caller.SendAsync("SessionSnapshot", snapshot);
         await base.OnConnectedAsync();
     }

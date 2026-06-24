@@ -18,7 +18,7 @@
                     <td>{{ session.name }}</td>
                     <td>{{ session.rebel.player?.name ?? '—' }}</td>
                     <td>{{ session.imperial.player?.name ?? '—' }}</td>
-                    <td>{{ session.status }}</td>
+                    <td>{{ getStatusText(session.status) }}</td>
                     <td>
                         <button
                             v-if="isParticipant(session)"
@@ -49,6 +49,7 @@ import router from '@/router';
 import { useSessionStore } from '@/stores/session.store';
 import { useUserStore } from '@/stores/user.store';
 import type { Session } from '@/types/session';
+import { SessionStatusEnum } from '@/types/session';
 import { storeToRefs } from 'pinia';
 
 const sessionStore = useSessionStore();
@@ -59,6 +60,10 @@ const isParticipant = (session: Session) => {
     const name = userStore.currentUser?.name;
     if (!name) return false;
     return session.rebel.player?.name === name || session.imperial.player?.name === name;
+};
+
+const getStatusText = (status: SessionStatusEnum) => {
+    return status === SessionStatusEnum.Pending ? 'Pending' : status === SessionStatusEnum.InProgress ? 'In Progress' : 'Finished';
 };
 
 const handleOpen = async (session: Session) => {

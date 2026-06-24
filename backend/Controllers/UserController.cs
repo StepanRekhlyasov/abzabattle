@@ -33,6 +33,12 @@ public class UserController(AppDbContext db, PresenceService presence) : Control
             return NotFound(new { detail = "User not found" });
         }
 
-        return Ok(new UserResponse { Name = user.Name });
+        return Ok(new UserResponse
+        {
+            Name = user.Name,
+            Wins = user.Wins,
+            Loses = user.Loses,
+            TotalGames = user.TotalGames,
+        });
     }
 }

@@ -35,7 +35,7 @@ const handleRotate = (event: MouseEvent) => {
 </script>
 <style scoped lang="scss">
 .deployment-unit {
-    width: 100%;
+    width: 90%;
     height: 100%;
     cursor: pointer;
     position: relative;

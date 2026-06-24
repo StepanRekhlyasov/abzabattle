@@ -11,7 +11,8 @@ namespace backend.Controllers;
 [Route("api/sessions")]
 public class SessionController(
     AppDbContext db,
-    SessionBroadcastService broadcast) : ControllerBase
+    SessionBroadcastService broadcast,
+    SessionUserService sessionUsers) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<SessionResponse>> Create([FromBody] CreateSessionRequest request)
@@ -76,7 +77,7 @@ public class SessionController(
         await db.SaveChangesAsync();
         await broadcast.BroadcastUpdatedAsync(session);
 
-        return Ok(SessionMapper.ToResponse(session, playerName));
+        return Ok(await ToResponseAsync(session, playerName));
     }
 
     [HttpGet]
@@ -89,7 +90,9 @@ public class SessionController(
             .ToListAsync();
 
         var viewer = string.IsNullOrWhiteSpace(playerName) ? null : playerName.Trim();
-        return Ok(sessions.Select(s => SessionMapper.ToResponse(s, viewer)));
+        var users = await sessionUsers.GetUsersForSessionsAsync(sessions);
+
+        return Ok(sessions.Select(s => SessionMapper.ToResponse(s, viewer, users)));
     }
 
     [HttpGet("{id:guid}")]
@@ -102,7 +105,7 @@ public class SessionController(
         }
 
         var viewer = string.IsNullOrWhiteSpace(playerName) ? null : playerName.Trim();
-        return Ok(SessionMapper.ToResponse(session, viewer));
+        return Ok(await ToResponseAsync(session, viewer));
     }
 
     [HttpPost("{id:guid}/join")]
@@ -151,7 +154,7 @@ public class SessionController(
         await db.SaveChangesAsync();
         await broadcast.BroadcastUpdatedAsync(session);
 
-        return Ok(SessionMapper.ToResponse(session, playerName));
+        return Ok(await ToResponseAsync(session, playerName));
     }
 
     [HttpPost("{id:guid}/start")]
@@ -211,7 +214,7 @@ public class SessionController(
         await db.SaveChangesAsync();
         await broadcast.BroadcastUpdatedAsync(session);
 
-        return Ok(SessionMapper.ToResponse(session, playerName));
+        return Ok(await ToResponseAsync(session, playerName));
     }
 
     [HttpPost("{id:guid}/attack")]
@@ -267,10 +270,30 @@ public class SessionController(
         {
             session.CurrentTurn = Faction.Opposite(playerFaction);
         }
+        else if (!BattleMapValidator.HasRemainingUnits(updatedMapJson))
+        {
+            session.Status = SessionStatus.Finished;
+            session.WinnerPlayerName = playerName;
+
+            var loserName = isRebel ? session.ImperialPlayerName! : session.RebelPlayerName!;
+            var winner = await db.Users.FirstAsync(u => u.Name == playerName);
+            var loser = await db.Users.FirstAsync(u => u.Name == loserName);
+
+            winner.Wins++;
+            winner.TotalGames++;
+            loser.Loses++;
+            loser.TotalGames++;
+        }
 
         await db.SaveChangesAsync();
         await broadcast.BroadcastUpdatedAsync(session);
 
-        return Ok(SessionMapper.ToResponse(session, playerName));
+        return Ok(await ToResponseAsync(session, playerName));
+    }
+
+    private async Task<SessionResponse> ToResponseAsync(GameSession session, string? viewer)
+    {
+        var users = await sessionUsers.GetUsersForSessionAsync(session);
+        return SessionMapper.ToResponse(session, viewer, users);
     }
 }
