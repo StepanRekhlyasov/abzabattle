@@ -1,4 +1,4 @@
-import { toUnitAbility } from '@/data/unitAbilities';
+import { toSwarmAbilities, toUnitAbility } from '@/data/unitAbilities';
 import type { UnitAbility } from '@/data/unitAbilities';
 import { EntityType } from '@/types/entity';
 import type { BattleMap } from '@/types/map';
@@ -27,8 +27,24 @@ export function getAbilitiesFromBattleMap(battleMap: BattleMap | null): UnitAbil
         });
     });
 
-    return Array.from(units.entries())
-        .filter(([, unit]) => unit.alive)
-        .map(([entityId, unit]) => toUnitAbility(entityId, unit.type))
-        .filter((ability): ability is UnitAbility => ability !== null);
+    const abilities: UnitAbility[] = [];
+    let aliveTieFighters = 0;
+
+    for (const [entityId, unit] of units.entries()) {
+        if (!unit.alive) continue;
+
+        if (unit.type === EntityType.TieFighter) {
+            aliveTieFighters++;
+            continue;
+        }
+
+        const ability = toUnitAbility(entityId, unit.type);
+        if (ability) {
+            abilities.push(ability);
+        }
+    }
+
+    abilities.push(...toSwarmAbilities(EntityType.TieFighter, aliveTieFighters, 'tie-fighter-swarm'));
+
+    return abilities;
 }

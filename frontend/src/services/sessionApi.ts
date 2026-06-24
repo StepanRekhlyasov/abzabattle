@@ -22,6 +22,13 @@ export type AttackSectorPayload = {
     y: number;
 };
 
+export type UseAbilityPayload = {
+    playerName: string;
+    abilityKind: string;
+    x: number;
+    y: number;
+};
+
 export async function fetchSession(id: string, playerName?: string) {
     const response = await api.get<Session>(`/sessions/${id}`, {
         params: playerName ? { playerName } : undefined,
@@ -46,5 +53,10 @@ export async function startBattle(id: string, payload: StartBattlePayload) {
 
 export async function attackSector(id: string, payload: AttackSectorPayload) {
     const response = await api.post<Session>(`/sessions/${id}/attack`, payload);
+    return response.data;
+}
+
+export async function useAbility(id: string, payload: UseAbilityPayload) {
+    const response = await api.post<Session>(`/sessions/${id}/ability`, payload);
     return response.data;
 }

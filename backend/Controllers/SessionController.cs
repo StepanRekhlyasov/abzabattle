@@ -291,6 +291,110 @@ public class SessionController(
         return Ok(await ToResponseAsync(session, playerName));
     }
 
+    [HttpPost("{id:guid}/ability")]
+    public async Task<ActionResult<SessionResponse>> UseAbility(Guid id, [FromBody] UseAbilityRequest request)
+    {
+        var session = await db.Sessions.FirstOrDefaultAsync(s => s.Id == id);
+        if (session is null)
+        {
+            return NotFound(new { detail = "Session not found" });
+        }
+
+        if (session.Status != SessionStatus.InProgress)
+        {
+            return Conflict(new { detail = "Battle is not in progress" });
+        }
+
+        var playerName = request.PlayerName.Trim();
+        var isRebel = playerName == session.RebelPlayerName;
+        var isImperial = playerName == session.ImperialPlayerName;
+
+        if (!isRebel && !isImperial)
+        {
+            return Conflict(new { detail = "Player is not in this session" });
+        }
+
+        var playerFaction = isRebel ? Faction.Rebel : Faction.Imperial;
+        if (session.CurrentTurn != playerFaction)
+        {
+            return Conflict(new { detail = "Not your turn" });
+        }
+
+        switch (request.AbilityKind)
+        {
+            case "deploy-tie-fighter":
+            {
+                var ownMapJson = isRebel ? session.RebelBattleMapJson : session.ImperialBattleMapJson;
+                if (string.IsNullOrWhiteSpace(ownMapJson))
+                {
+                    return BadRequest(new { detail = "Your battle map is not available" });
+                }
+
+                if (!BattleMapMutator.TryDeployTieFighter(ownMapJson, request.X, request.Y, out var updatedOwnMapJson))
+                {
+                    return BadRequest(new { detail = "Sector cannot be used for deployment" });
+                }
+
+                if (isRebel)
+                {
+                    session.RebelBattleMapJson = updatedOwnMapJson;
+                }
+                else
+                {
+                    session.ImperialBattleMapJson = updatedOwnMapJson;
+                }
+
+                break;
+            }
+            case "opponent-strike":
+            {
+                var opponentMapJson = isRebel ? session.ImperialBattleMapJson : session.RebelBattleMapJson;
+                if (string.IsNullOrWhiteSpace(opponentMapJson))
+                {
+                    return BadRequest(new { detail = "Opponent battle map is not available" });
+                }
+
+                if (!BattleMapMutator.TryStrikeSector(opponentMapJson, request.X, request.Y, out var updatedMapJson, out var isHit))
+                {
+                    return BadRequest(new { detail = "Sector cannot be attacked" });
+                }
+
+                if (isRebel)
+                {
+                    session.ImperialBattleMapJson = updatedMapJson;
+                }
+                else
+                {
+                    session.RebelBattleMapJson = updatedMapJson;
+                }
+
+                if (isHit && !BattleMapValidator.HasRemainingUnits(updatedMapJson))
+                {
+                    session.Status = SessionStatus.Finished;
+                    session.WinnerPlayerName = playerName;
+
+                    var loserName = isRebel ? session.ImperialPlayerName! : session.RebelPlayerName!;
+                    var winner = await db.Users.FirstAsync(u => u.Name == playerName);
+                    var loser = await db.Users.FirstAsync(u => u.Name == loserName);
+
+                    winner.Wins++;
+                    winner.TotalGames++;
+                    loser.Loses++;
+                    loser.TotalGames++;
+                }
+
+                break;
+            }
+            default:
+                return BadRequest(new { detail = "Unknown ability" });
+        }
+
+        await db.SaveChangesAsync();
+        await broadcast.BroadcastUpdatedAsync(session);
+
+        return Ok(await ToResponseAsync(session, playerName));
+    }
+
     private async Task<SessionResponse> ToResponseAsync(GameSession session, string? viewer)
     {
         var users = await sessionUsers.GetUsersForSessionAsync(session);

@@ -108,6 +108,11 @@ export const useSessionStore = defineStore('session', {
             this.commitSession(session);
             return session;
         },
+        async useAbility(id: string, playerName: string, abilityKind: string, x: number, y: number) {
+            const session = await sessionApi.useAbility(id, { playerName, abilityKind, x, y });
+            this.commitSession(session);
+            return session;
+        },
         isWaitingForOpponent(playerName: string) {
             if (!this.currentSession) return false;
             return this.currentSession.status === 'pending' &&

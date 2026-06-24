@@ -2,6 +2,10 @@
     <div class="deployment-unit" :class="{ selected: isSelected }" @click="handleClick">
         <span class="pts-cost">{{ definition.ptsCost }} PTS</span>
         <span class="item-name">{{ unitAsset.name }}</span>
+        <div class="ability-tooltip" role="tooltip" v-if="abilityDefinition">
+            <span class="ability-tooltip__name">{{ abilityDefinition.name }}</span>
+            <span class="ability-tooltip__description">{{ abilityDefinition.description }}</span>
+        </div>
         <span class="rotation-badge" v-if="abilityDefinition">Ability: {{ abilityDefinition?.name }}</span>
         <button v-if="isSelected" type="button" class="rotate-button" @click="handleRotate">{{ draftStore.selectedRotation }}° - Rotate</button>
         <img :src="unitAsset.image" :alt="unitAsset.name" />

@@ -49,4 +49,47 @@ public static class BattleMapMutator
         updatedJson = root.ToJsonString(JsonOptions);
         return true;
     }
+
+    public static bool TryDeployTieFighter(string battleMapJson, int x, int y, out string updatedJson)
+    {
+        updatedJson = battleMapJson;
+        var root = JsonNode.Parse(battleMapJson);
+        if (root?["sectors"] is not JsonArray sectors)
+        {
+            return false;
+        }
+
+        if (y < 0 || y >= sectors.Count)
+        {
+            return false;
+        }
+
+        if (sectors[y] is not JsonArray row || x < 0 || x >= row.Count)
+        {
+            return false;
+        }
+
+        if (row[x] is not JsonObject sector)
+        {
+            return false;
+        }
+
+        var entityType = sector["entity"]?["type"]?.GetValue<string>();
+        if (entityType is not "empty")
+        {
+            return false;
+        }
+
+        sector["entity"] = new JsonObject
+        {
+            ["type"] = "tie-fighter",
+            ["id"] = Guid.NewGuid().ToString(),
+            ["content"] = "TF",
+            ["rotation"] = 0,
+        };
+        sector["destroyed"] = false;
+
+        updatedJson = root.ToJsonString(JsonOptions);
+        return true;
+    }
 }

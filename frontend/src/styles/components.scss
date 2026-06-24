@@ -28,3 +28,36 @@
         }
     }
 }
+
+.ability-tooltip {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 8px);
+    transform: translateX(-50%) translateY(4px);
+    min-width: 180px;
+    max-width: 240px;
+    padding: var(--space-sm);
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.ability-tooltip__name {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.ability-tooltip__description {
+    font-size: 12px;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.85);
+}
