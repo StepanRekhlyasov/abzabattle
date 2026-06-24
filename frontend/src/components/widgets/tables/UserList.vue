@@ -1,8 +1,5 @@
 <template>
     <div class="abzabattle-table">
-        <div v-if="onlineUsers.length === 0" class="user-list-empty">
-            No users online
-        </div>
         <table>
             <thead>
                 <tr>
@@ -14,9 +11,11 @@
                     v-for="user in onlineUsers"
                     :key="user.name"
                 >
-                    <td><div class="user-list-item">
-                        <div class="green-dot"></div>{{ user.name }}
-                    </div></td>
+                    <td>
+                        <div class="user-list-item">
+                            <div class="green-dot"></div>{{ user.name }}<template v-if="user.name === currentUser?.name"> (you)</template>
+                        </div>
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -29,7 +28,7 @@ import { storeToRefs } from 'pinia';
 import { onMounted } from 'vue';
 
 const userStore = useUserStore();
-const { onlineUsers } = storeToRefs(userStore);
+const { onlineUsers, currentUser } = storeToRefs(userStore);
 
 onMounted(async () => {
     if (onlineUsers.value.length === 0) {

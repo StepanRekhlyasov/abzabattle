@@ -3,7 +3,7 @@ import api from "@/services/api"
 import router from "@/router";
 import { useUserStore } from "./user.store";
 import { resetAllStores } from "@/services/app";
-import { connectWs } from "@/services/ws";
+import { connectWs, disconnectWs } from "@/services/ws";
 
 export const useAuthStore = defineStore('auth', {
     actions: {
@@ -15,9 +15,10 @@ export const useAuthStore = defineStore('auth', {
                 router.push('/');
             }
         },
-        logout() {
-            void resetAllStores();
+        async logout() {
+            resetAllStores();
             router.push('/login');
+            await disconnectWs();
         },
     },
     persist: true,

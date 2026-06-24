@@ -37,5 +37,4 @@ export async function disconnectWs() {
 
     await connection.stop()
     connection = null
-    useUserStore().clearOnlineUsers()
 }
