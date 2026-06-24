@@ -6,7 +6,7 @@
         :class="{'empty': !sectorData.entity.content}"
     >
         <div v-if="sectorData.hidden" class="battle-sector-hidden" />
-        <div v-else-if="!sectorData.destroyed" class="battle-sector-content">{{ sectorData.entity.content }}</div>
+        <div v-else-if="!sectorData.destroyed" class="battle-sector-content" :class="{'with-contend' : sectorData.entity.content}">{{ sectorData.entity.content }}</div>
         <div v-else class="battle-sector-destroyed">{{ sectorData.entity.content }}</div>
         <div
             v-if="isShieldVisible(sectorData)"
@@ -50,6 +50,9 @@ const emit = defineEmits<{
         background-color: var(--color-sector-hidden);
         border-radius: v-bind('denseMode ? "5px" : "10px"');
         &:hover { background-color: var(--color-sector-hidden-hover); }
+    }
+    .battle-sector-content.with-contend {
+        background-color: var(--color-sector-exposed-content);
     }
     .battle-sector-content,
     .battle-sector-destroyed {

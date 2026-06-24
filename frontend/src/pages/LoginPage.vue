@@ -35,7 +35,7 @@ const name = ref<string>('');
 const isLoading = ref<boolean>(false);
 const isGameOver = ref<boolean>(false);
 const { generateBattleMap, randomlyDeployEntities } = useBattleMap();
-const battleMap = ref<BattleMapType>(generateBattleMap({ size: { x: 4, y: 4 } }));
+const battleMap = ref<BattleMapType>(generateBattleMap({ size: { x: 5, y: 5 } }));
 randomlyDeployEntities([
   { type: EntityType.Letter, content: 'L' },
   { type: EntityType.Letter, content: 'O' },

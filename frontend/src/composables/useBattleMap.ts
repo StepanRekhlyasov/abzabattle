@@ -52,11 +52,12 @@ export const useBattleMap = () => {
         }))),
     });
 
-    const canPlaceEntity = (entity: Entity, anchor: MapPosition, battleMap: BattleMap) => {
+    const canPlaceEntity = (entity: Entity, anchor: MapPosition, battleMap: BattleMap, ignoreAdjacent = false) => {
         if (entity.type === EntityType.Empty) return false;
         const cells = getEntityCells(entity.type, anchor, getEntityRotation(entity));
         const footprintKeys = new Set(cells.map(positionKey));
         if (!cells.every(position => isSectorEmpty(battleMap, position))) return false;
+        if (ignoreAdjacent) return true;
         return cells.every(position => getAdjacentPositions(position).every(adjacent => {
             if (footprintKeys.has(positionKey(adjacent)) || !isInsideMap(battleMap, adjacent)) return true;
             return isSectorEmpty(battleMap, adjacent);
@@ -68,8 +69,8 @@ export const useBattleMap = () => {
         return { cells, isValid: canPlaceEntity(entity, anchor, battleMap) };
     };
 
-    const placeEntity = (entity: Entity, anchor: MapPosition, battleMap: BattleMap, isHidden = false) => {
-        if (!canPlaceEntity(entity, anchor, battleMap)) return false;
+    const placeEntity = (entity: Entity, anchor: MapPosition, battleMap: BattleMap, isHidden = false, ignoreAdjacent = false) => {
+        if (!canPlaceEntity(entity, anchor, battleMap, ignoreAdjacent)) return false;
         const definition = getEntityDefinition(entity.type);
         const placedEntity = { ...entity, id: entity.id ?? crypto.randomUUID(), content: entity.content ?? definition.content };
         getEntityCells(placedEntity.type, anchor, getEntityRotation(placedEntity)).forEach((position) => {
@@ -92,7 +93,7 @@ export const useBattleMap = () => {
             const anchorIndex = shuffledAnchors.findIndex(anchor => canPlaceEntity(entity, anchor, battleMap));
             if (anchorIndex === -1) continue;
             const [anchor] = shuffledAnchors.splice(anchorIndex, 1);
-            placeEntity(entity, anchor, battleMap, true);
+            placeEntity(entity, anchor, battleMap, true, true);
         }
         return battleMap;
     };
