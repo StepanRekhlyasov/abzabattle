@@ -8,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<PresenceService>();
+builder.Services.AddSingleton<SessionConnectionService>();
+builder.Services.AddScoped<SessionBroadcastService>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -26,4 +28,5 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<PresenceHub>("/hubs/presence");
+app.MapHub<SessionHub>("/hubs/sessions");
 app.Run();

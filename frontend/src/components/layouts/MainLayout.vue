@@ -37,7 +37,6 @@ const authStore = useAuthStore();
     height: 50px;
 }
 .main-layout-content {
-    padding: 10px;
     height: calc(100% - 50px);
     background-image: url('@/assets/images/background.png');
     background-size: cover;    

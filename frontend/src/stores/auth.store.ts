@@ -4,6 +4,7 @@ import router from "@/router";
 import { useUserStore } from "./user.store";
 import { resetAllStores } from "@/services/app";
 import { connectWs, disconnectWs } from "@/services/ws";
+import { connectSessionWs, disconnectSessionWs } from "@/services/sessionWs";
 
 export const useAuthStore = defineStore('auth', {
     actions: {
@@ -12,6 +13,7 @@ export const useAuthStore = defineStore('auth', {
             if (response.data.success) {
                 await useUserStore().getUser(name);
                 await connectWs(name);
+                await connectSessionWs(name);
                 if (redirect) {
                     router.push('/');
                 }
@@ -21,6 +23,7 @@ export const useAuthStore = defineStore('auth', {
             resetAllStores();
             router.push('/login');
             await disconnectWs();
+            await disconnectSessionWs();
         },
     },
     persist: true,

@@ -7,6 +7,7 @@
                     <th>Rebel Player</th>
                     <th>Imperial Player</th>
                     <th>Status</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -14,14 +15,29 @@
                     v-for="session in onlineSessions"
                     :key="session.id"
                 >
-                    <td>
-                        <div class="user-list-item">
-                            {{ session.name }}
-                        </div>
-                    </td>
-                    <td>{{ session.rebel?.name ?? '—' }}</td>
-                    <td>{{ session.imperial?.name ?? '—' }}</td>
+                    <td>{{ session.name }}</td>
+                    <td>{{ session.rebel.player?.name ?? '—' }}</td>
+                    <td>{{ session.imperial.player?.name ?? '—' }}</td>
                     <td>{{ session.status }}</td>
+                    <td>
+                        <button
+                            v-if="isParticipant(session)"
+                            class="generic-button"
+                            title="Return to your session"
+                            @click="handleOpen(session)"
+                        >
+                            Open
+                        </button>
+                        <button
+                            v-else
+                            class="generic-button"
+                            :disabled="!session.canJoin"
+                            :title="session.canJoin ? 'Join session' : 'No free slots'"
+                            @click="handleJoin(session.id)"
+                        >
+                            Join
+                        </button>
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -29,26 +45,33 @@
 </template>
 
 <script setup lang="ts">
+import router from '@/router';
 import { useSessionStore } from '@/stores/session.store';
+import { useUserStore } from '@/stores/user.store';
+import type { Session } from '@/types/session';
 import { storeToRefs } from 'pinia';
 
 const sessionStore = useSessionStore();
+const userStore = useUserStore();
 const { onlineSessions } = storeToRefs(sessionStore);
+
+const isParticipant = (session: Session) => {
+    const name = userStore.currentUser?.name;
+    if (!name) return false;
+    return session.rebel.player?.name === name || session.imperial.player?.name === name;
+};
+
+const handleOpen = async (session: Session) => {
+    const name = userStore.currentUser?.name;
+    if (!name) return;
+    await sessionStore.loadSession(session.id, name);
+    router.push(`/session/${session.id}`);
+};
+
+const handleJoin = async (sessionId: string) => {
+    const name = userStore.currentUser?.name;
+    if (!name) return;
+    await sessionStore.joinSession(sessionId, name);
+    router.push(`/session/${sessionId}`);
+};
 </script>
-<style scoped lang="scss">
-
-.user-list-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.green-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: #4caf50;
-}
-
-</style>
-

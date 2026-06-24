@@ -1,5 +1,10 @@
 <template>
-    <div class="battle-sector" @click="emit('sector-click', sectorData)" @mouseenter="emit('sector-hover', sectorData)">
+    <div 
+        class="battle-sector" 
+        @click="emit('sector-click', sectorData)"
+        @mouseenter="emit('sector-hover', sectorData)" 
+        :class="{'empty': !sectorData.entity.content}"
+    >
         <div v-if="sectorData.hidden" class="battle-sector-hidden" />
         <div v-else-if="!sectorData.destroyed" class="battle-sector-content">{{ sectorData.entity.content }}</div>
         <div v-else class="battle-sector-destroyed">{{ sectorData.entity.content }}</div>
@@ -58,6 +63,9 @@ const emit = defineEmits<{
         z-index: 1;
         &--valid { background-color: var(--color-sector-hidden-hover); }
         &--invalid { background-color: var(--color-sector-destroyed); }
+    }
+    &.empty {
+        .battle-sector-destroyed { background-color: var(--color-sector-empty-destroyed); }
     }
 }
 </style>
