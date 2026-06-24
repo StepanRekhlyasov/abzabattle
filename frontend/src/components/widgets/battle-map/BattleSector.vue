@@ -15,6 +15,7 @@ import type { BattleSector } from '@/types/map';
 
 const props = defineProps<{
     sectorData: BattleSector;
+    denseMode: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -28,10 +29,10 @@ const onClickHandler = () => {
 </script>   
 <style scoped lang="scss">
 .battle-sector {
-    width: 50px;
-    height: 50px;
+    width: v-bind('denseMode ? "30px" : "50px"');
+    height: v-bind('denseMode ? "30px" : "50px"');
     background-color: var(--color-sector-exposed);
-    border-radius: 10px;
+    border-radius: v-bind('denseMode ? "5px" : "10px"');
     display: flex;
     justify-content: center;
     align-items: center;
@@ -45,7 +46,7 @@ const onClickHandler = () => {
         width: 100%;
         height: 100%;
         background-color: var(--color-sector-hidden);
-        border-radius: 10px;
+        border-radius: v-bind('denseMode ? "5px" : "10px"');
         &:hover {
             background-color: var(--color-sector-hidden-hover);
         }

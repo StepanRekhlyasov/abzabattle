@@ -20,7 +20,7 @@ const authStore = useAuthStore();
 
 onMounted(async () => {
   if (userStore.currentUser) {
-    await authStore.login(userStore.currentUser.name);
+    await authStore.login(userStore.currentUser.name, false);
   }
 })
 </script>

@@ -7,12 +7,14 @@ import { connectWs, disconnectWs } from "@/services/ws";
 
 export const useAuthStore = defineStore('auth', {
     actions: {
-        async login(name: string) {
+        async login(name: string, redirect: boolean = true) {
             const response = await api.post<{ success: boolean }>('/login', { name });
             if (response.data.success) {
                 await useUserStore().getUser(name);
                 await connectWs(name);
-                router.push('/');
+                if (redirect) {
+                    router.push('/');
+                }
             }
         },
         async logout() {

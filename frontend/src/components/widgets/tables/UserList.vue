@@ -25,16 +25,9 @@
 <script setup lang="ts">
 import { useUserStore } from '@/stores/user.store';
 import { storeToRefs } from 'pinia';
-import { onMounted } from 'vue';
 
 const userStore = useUserStore();
 const { onlineUsers, currentUser } = storeToRefs(userStore);
-
-onMounted(async () => {
-    if (onlineUsers.value.length === 0) {
-        await userStore.getOnlineUsers();
-    }
-});
 </script>
 <style scoped lang="scss">
 

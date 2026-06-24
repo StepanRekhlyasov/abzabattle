@@ -2,6 +2,9 @@
     <main-layout>
         <div class="wrapper">
             <div class="item sessions">
+                <button @click="goToCreateSession" class="generic-button">
+                    Create Session
+                </button>
                 <session-list />
             </div>
             <div class="item users">
@@ -14,6 +17,11 @@
 import MainLayout from '@/components/layouts/MainLayout.vue';
 import SessionList from '@/components/widgets/tables/SessionList.vue';
 import UserList from '@/components/widgets/tables/UserList.vue';
+import router from '@/router';
+
+const goToCreateSession = () => {
+    router.push('/create');
+}
 </script>
 <style scoped lang="scss">
 .wrapper {
