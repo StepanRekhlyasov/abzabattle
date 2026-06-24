@@ -23,7 +23,7 @@ export type UnitAbility = AbilityDefinition & {
     image: string;
 };
 
-export const TIE_FIGHTERS_PER_ABILITY = 4;
+export const TIE_FIGHTERS_PER_ABILITY = 3;
 
 const ABILITY_DEFINITIONS: Partial<Record<EntityType, AbilityDefinition>> = {
     [EntityType.StarDestroyer]: {
