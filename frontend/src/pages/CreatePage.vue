@@ -21,7 +21,7 @@
             </label>
             <label class="item">
                 <span>Pick faction:</span>
-                <select v-model="myFaction" class="generic-input">
+                <select v-model="selectedFaction" class="generic-input">
                     <option value="imperial">
                         Imperial
                     </option>
@@ -33,11 +33,7 @@
         <div class="wrapper" style="margin-top: var(--space-sm);"  v-if="battleMap">
             <battle-map :battle-map-data="battleMap" />
             <div class="roster-wrapper">    
-                <deploy-roster
-                    :selected-faction="myFaction"
-                    :pts-limit="ptsLimit"
-                    :battle-map="battleMap"
-                />
+                <deploy-roster />
                 <button @click="handleCreateSession" class="generic-button">Create Session</button>
             </div>
         </div>
@@ -51,13 +47,14 @@ import { useBattleMap } from '@/composables/useBattleMap';
 import type { BattleMap as BattleMapType } from '@/types/map';
 import BattleMap from '@/components/widgets/battle-map/BattleMap.vue';
 import DeployRoster from '@/components/widgets/battle-map/DeployRoster.vue';
+import { useDraftStore } from '@/stores/draft.store';
+import { storeToRefs } from 'pinia';
 
+const draftStore = useDraftStore();
+const { battleMap, selectedFaction, ptsLimit } = storeToRefs(draftStore);
 const { generateBattleMap } = useBattleMap();
-const battleMap = ref<BattleMapType | null>(null);
 
 const battleMapSize = ref<string>('12');
-const myFaction = ref<Faction>(Faction.Imperial);
-const ptsLimit = ref<number>(100);
 
 const handleGenerateBattleMap = () => {
     battleMap.value = generateBattleMap({ size: { x: parseInt(battleMapSize.value), y: parseInt(battleMapSize.value) } });

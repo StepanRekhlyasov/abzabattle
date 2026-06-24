@@ -40,7 +40,9 @@ const authStore = useAuthStore();
     padding: 10px;
     height: calc(100% - 50px);
     background-image: url('@/assets/images/background.png');
-    background-size: cover;
+    background-size: cover;    
+    display: flex;
+    flex-direction: column; 
 }
 .main-layout-header-user {
     display: flex;
