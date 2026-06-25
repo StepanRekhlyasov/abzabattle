@@ -4,7 +4,7 @@ namespace backend.Services;
 
 public static class BattleMapPlacement
 {
-    public static bool CanPlaceTieFighter(JsonArray sectors, int x, int y)
+    public static bool CanPlaceWithEmptyAdjacentCells(JsonArray sectors, int x, int y)
     {
         if (!IsSectorEmpty(sectors, x, y))
         {
@@ -22,6 +22,11 @@ public static class BattleMapPlacement
 
                 var adjacentX = x + dx;
                 var adjacentY = y + dy;
+
+                if (!IsInsideMap(sectors, adjacentX, adjacentY))
+                {
+                    continue;
+                }
 
                 if (!IsSectorEmpty(sectors, adjacentX, adjacentY))
                 {
@@ -45,11 +50,32 @@ public static class BattleMapPlacement
         return entityType == "empty";
     }
 
+    private static bool IsInsideMap(JsonArray sectors, int x, int y)
+    {
+        if (y < 0 || y >= sectors.Count)
+        {
+            return false;
+        }
+
+        if (sectors[y] is not JsonArray row)
+        {
+            return false;
+        }
+
+        return x >= 0 && x < row.Count;
+    }
+
     private static bool TryGetSector(JsonArray sectors, int x, int y, out JsonObject sector)
     {
         sector = null!;
 
-        if (sectors[y] is not JsonArray row || row[x] is not JsonObject sectorObject)
+        if (!IsInsideMap(sectors, x, y))
+        {
+            return false;
+        }
+
+        var row = (JsonArray)sectors[y]!;
+        if (row[x] is not JsonObject sectorObject)
         {
             return false;
         }

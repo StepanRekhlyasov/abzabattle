@@ -28,7 +28,7 @@ public static class BattleMapValidator
                     continue;
                 }
 
-                if (type.GetString() is not { } entityType || entityType == "empty")
+                if (type.GetString() is not { } entityType || entityType is "empty" or "space-mine")
                 {
                     continue;
                 }
@@ -55,6 +55,7 @@ public static class BattleMapValidator
             ["nebulon-frigate"] = 20,
             ["x-wing"] = 15,
             ["u-wing"] = 20,
+            ["gozanti-class-cruiser"] = 25,
         };
 
         var spent = 0;

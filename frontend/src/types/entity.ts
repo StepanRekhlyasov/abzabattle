@@ -13,6 +13,8 @@ export enum EntityType {
     StarDestroyer = 'star-destroyer',
     MonCalamari = 'mon-calamari',
     TieFighter = 'tie-fighter',
+    GozantiClassCruiser = 'gozanti-class-cruiser',
+    SpaceMine = 'space-mine',
     NebulonFrigate = 'nebulon-frigate',
     XWing = 'x-wing',
     UWing = 'u-wing',
@@ -32,6 +34,8 @@ export type RotatableEntity<T extends EntityType> = BaseEntity<T> & { rotation: 
 export type StarDestroyerEntity = RotatableEntity<EntityType.StarDestroyer>;
 export type MonCalamariEntity = RotatableEntity<EntityType.MonCalamari>;
 export type TieFighterEntity = RotatableEntity<EntityType.TieFighter>;
+export type GozantiClassCruiserEntity = RotatableEntity<EntityType.GozantiClassCruiser>;
+export type SpaceMineEntity = RotatableEntity<EntityType.SpaceMine>;
 export type NebulonFrigateEntity = RotatableEntity<EntityType.NebulonFrigate>;
 export type XWingEntity = RotatableEntity<EntityType.XWing>;
 export type UWingEntity = RotatableEntity<EntityType.UWing>;
@@ -44,6 +48,8 @@ type EntityTypeMap = {
     [EntityType.StarDestroyer]: StarDestroyerEntity;
     [EntityType.MonCalamari]: MonCalamariEntity;
     [EntityType.TieFighter]: TieFighterEntity;
+    [EntityType.GozantiClassCruiser]: GozantiClassCruiserEntity;
+    [EntityType.SpaceMine]: SpaceMineEntity;
     [EntityType.NebulonFrigate]: NebulonFrigateEntity;
     [EntityType.XWing]: XWingEntity;
     [EntityType.UWing]: UWingEntity;

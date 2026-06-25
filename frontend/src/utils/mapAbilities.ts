@@ -11,7 +11,7 @@ export function getAbilitiesFromBattleMap(battleMap: BattleMap | null): UnitAbil
     battleMap.sectors.forEach((row, y) => {
         row.forEach((sector, x) => {
             const { entity, destroyed } = sector;
-            if (entity.type === EntityType.Empty) return;
+            if (entity.type === EntityType.Empty || entity.type === EntityType.SpaceMine) return;
 
             const entityId = entity.id ?? `${entity.type}-${x}-${y}`;
             const existing = units.get(entityId);

@@ -37,6 +37,11 @@ public static class BattleMapMutator
             return false;
         }
 
+        if (TryHandleSpaceMineHit(sector, root, out updatedJson, out outcome))
+        {
+            return true;
+        }
+
         return ApplySectorHit(sectors, sector, out updatedJson, out outcome, root);
     }
 
@@ -65,6 +70,11 @@ public static class BattleMapMutator
         if (destroyed)
         {
             return false;
+        }
+
+        if (TryHandleSpaceMineHit(sector, root, out updatedJson, out outcome))
+        {
+            return true;
         }
 
         var entityType = sector["entity"]?["type"]?.GetValue<string>();
@@ -111,6 +121,11 @@ public static class BattleMapMutator
             return false;
         }
 
+        if (TryHandleSpaceMineHit(sector, root, out updatedJson, out outcome))
+        {
+            return true;
+        }
+
         var entityType = sector["entity"]?["type"]?.GetValue<string>();
         if (entityType == "tie-fighter")
         {
@@ -143,7 +158,7 @@ public static class BattleMapMutator
             return false;
         }
 
-        if (!BattleMapPlacement.CanPlaceTieFighter(sectors, x, y))
+        if (!BattleMapPlacement.CanPlaceWithEmptyAdjacentCells(sectors, x, y))
         {
             return false;
         }
@@ -157,6 +172,67 @@ public static class BattleMapMutator
         };
         sector["destroyed"] = false;
 
+        updatedJson = root.ToJsonString(JsonOptions);
+        return true;
+    }
+
+    public static bool TryDeploySpaceMine(string battleMapJson, int x, int y, out string updatedJson)
+    {
+        updatedJson = battleMapJson;
+        var root = JsonNode.Parse(battleMapJson);
+        if (root?["sectors"] is not JsonArray sectors)
+        {
+            return false;
+        }
+
+        if (!TryGetSector(sectors, x, y, out var sector))
+        {
+            return false;
+        }
+
+        var entityType = sector["entity"]?["type"]?.GetValue<string>();
+        if (entityType is not "empty")
+        {
+            return false;
+        }
+
+        if (!BattleMapPlacement.CanPlaceWithEmptyAdjacentCells(sectors, x, y))
+        {
+            return false;
+        }
+
+        sector["entity"] = new JsonObject
+        {
+            ["type"] = "space-mine",
+            ["id"] = Guid.NewGuid().ToString(),
+            ["content"] = "SM",
+            ["rotation"] = 0,
+        };
+        sector["destroyed"] = false;
+        sector["hidden"] = true;
+
+        updatedJson = root.ToJsonString(JsonOptions);
+        return true;
+    }
+
+    private static bool TryHandleSpaceMineHit(
+        JsonObject sector,
+        JsonNode root,
+        out string updatedJson,
+        out StrikeOutcome outcome)
+    {
+        updatedJson = root.ToJsonString(JsonOptions);
+        outcome = StrikeOutcome.Miss;
+
+        var entityType = sector["entity"]?["type"]?.GetValue<string>();
+        if (entityType != "space-mine")
+        {
+            return false;
+        }
+
+        sector["hidden"] = false;
+        sector["destroyed"] = true;
+        outcome = StrikeOutcome.MineHit;
         updatedJson = root.ToJsonString(JsonOptions);
         return true;
     }

@@ -5,4 +5,5 @@ public enum StrikeOutcome
     Miss,
     Hit,
     ShieldBreak,
+    MineHit,
 }

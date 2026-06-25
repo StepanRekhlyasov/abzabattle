@@ -425,6 +425,29 @@ public class SessionController(
 
                 break;
             }
+            case "place-space-mine":
+            {
+                var targetBefore = BattleMapReader.TryGetSectorTarget(ownMapJson, request.X, request.Y);
+
+                if (!BattleMapMutator.TryDeploySpaceMine(ownMapJson, request.X, request.Y, out var updatedOwnMapJson))
+                {
+                    return BadRequest(new { detail = "Sector cannot be used for mine placement" });
+                }
+
+                session.ImperialBattleMapJson = updatedOwnMapJson;
+                await actionLogger.LogAbilityAsync(
+                    session,
+                    playerName,
+                    request.AbilityKind,
+                    request.X,
+                    request.Y,
+                    targetBefore,
+                    null,
+                    updatedOwnMapJson,
+                    isRebel);
+
+                break;
+            }
             case "opponent-strike":
             {
                 var targetBefore = BattleMapReader.TryGetSectorTarget(opponentMapJson, request.X, request.Y);
@@ -453,6 +476,11 @@ public class SessionController(
                     outcome,
                     updatedMapJson,
                     isRebel);
+
+                if (outcome == StrikeOutcome.MineHit)
+                {
+                    BattleTurnRules.EndTurn(session);
+                }
 
                 break;
             }
@@ -490,6 +518,11 @@ public class SessionController(
                     updatedMapJson,
                     isRebel);
 
+                if (outcome == StrikeOutcome.MineHit)
+                {
+                    BattleTurnRules.EndTurn(session);
+                }
+
                 break;
             }
             case "bombardment":
@@ -525,6 +558,11 @@ public class SessionController(
                     outcome,
                     updatedMapJson,
                     isRebel);
+
+                if (outcome == StrikeOutcome.MineHit)
+                {
+                    BattleTurnRules.EndTurn(session);
+                }
 
                 break;
             }

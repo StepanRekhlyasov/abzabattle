@@ -8,7 +8,7 @@ public static class BattleTurnRules
 
     public static void ApplyNormalAttackOutcome(GameSession session, StrikeOutcome outcome)
     {
-        if (outcome == StrikeOutcome.Miss)
+        if (outcome is StrikeOutcome.Miss or StrikeOutcome.MineHit)
         {
             EndTurn(session);
             return;

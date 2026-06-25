@@ -193,6 +193,11 @@ public class SessionActionLogger(AppDbContext db)
             return $"{playerName} attacks {x}/{y} sector with {shotLabel} shot and misses.{suffix}";
         }
 
+        if (outcome == StrikeOutcome.MineHit)
+        {
+            return $"{playerName} attacks {x}/{y} sector with {shotLabel} shot and triggers a Space Mine! End of turn.";
+        }
+
         if (outcome == StrikeOutcome.ShieldBreak)
         {
             var entityName = GetEntityDisplayName(targetBefore?.EntityType);
@@ -222,6 +227,7 @@ public class SessionActionLogger(AppDbContext db)
         {
             "place-shield" => $"{playerName} uses {abilityName}.",
             "deploy-tie-fighter" => $"{playerName} uses {abilityName} on {x}/{y} sector.",
+            "place-space-mine" => $"{playerName} uses {abilityName} on {x}/{y} sector.",
             _ => FormatTargetedAbilityMessage(playerName, abilityName, x, y, targetBefore, outcome, isKill),
         };
     }
@@ -236,6 +242,11 @@ public class SessionActionLogger(AppDbContext db)
         bool isKill)
     {
         var coordinates = x.HasValue && y.HasValue ? $" on {x}/{y} sector" : string.Empty;
+
+        if (outcome == StrikeOutcome.MineHit)
+        {
+            return $"{playerName} uses {abilityName}{coordinates} and triggers a Space Mine! End of turn.";
+        }
 
         if (outcome == StrikeOutcome.ShieldBreak)
         {
@@ -274,6 +285,7 @@ public class SessionActionLogger(AppDbContext db)
     private static string GetAbilityName(string abilityKind, bool isRebel) => abilityKind switch
     {
         "deploy-tie-fighter" => "Tie Fighter Reinforcement",
+        "place-space-mine" => "Space Mines",
         "place-shield" => "Deflector Shield",
         "airborne-superiority" => "Airborne Superiority",
         "bombardment" => "Bombardment",
@@ -289,6 +301,8 @@ public class SessionActionLogger(AppDbContext db)
         "nebulon-frigate" => "Nebulon Frigate",
         "x-wing" => "X-Wing",
         "u-wing" => "U-Wing",
+        "gozanti-class-cruiser" => "Gozanti Class Cruiser",
+        "space-mine" => "Space Mine",
         "empty" or null => "empty sector",
         _ => entityType,
     };

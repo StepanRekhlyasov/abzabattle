@@ -141,6 +141,12 @@ const deployTieFighterEntity = {
     content: 'TF',
 } as const;
 
+const deploySpaceMineEntity = {
+    type: EntityType.SpaceMine,
+    rotation: EntityRotation.R0,
+    content: 'SM',
+} as const;
+
 const myFaction = computed(() => {
     const name = userStore.currentUser?.name;
     if (!name || !currentSession.value) return null;
@@ -242,6 +248,9 @@ const ownMapPlacementPreview = computed(() => {
     if (selectedAbility.value?.kind === AbilityKind.DeployTieFighter) {
         return getPlacementPreview(deployTieFighterEntity, ownMapHoverAnchor.value, myBattleMap.value);
     }
+    if (selectedAbility.value?.kind === AbilityKind.PlaceSpaceMine) {
+        return getPlacementPreview(deploySpaceMineEntity, ownMapHoverAnchor.value, myBattleMap.value);
+    }
     if (selectedAbility.value?.kind === AbilityKind.PlaceShield) {
         const sector = myBattleMap.value.sectors[ownMapHoverAnchor.value.y]?.[ownMapHoverAnchor.value.x];
         const isValid = !!sector && canPlaceShieldOnSector(sector, selectedAbility.value.entityId);
@@ -301,7 +310,9 @@ const handleMySectorHover = ({ x, y }: { x: number; y: number }) => {
         ownMapHoverAnchor.value = null;
         return;
     }
-    if (ability.kind !== AbilityKind.DeployTieFighter && ability.kind !== AbilityKind.PlaceShield) {
+    if (ability.kind !== AbilityKind.DeployTieFighter
+        && ability.kind !== AbilityKind.PlaceSpaceMine
+        && ability.kind !== AbilityKind.PlaceShield) {
         ownMapHoverAnchor.value = null;
         return;
     }
@@ -311,6 +322,11 @@ const handleMySectorHover = ({ x, y }: { x: number; y: number }) => {
 const canDeployTieFighterAt = (x: number, y: number) => {
     if (!myBattleMap.value) return false;
     return getPlacementPreview(deployTieFighterEntity, { x, y }, myBattleMap.value)?.isValid ?? false;
+};
+
+const canDeploySpaceMineAt = (x: number, y: number) => {
+    if (!myBattleMap.value) return false;
+    return getPlacementPreview(deploySpaceMineEntity, { x, y }, myBattleMap.value)?.isValid ?? false;
 };
 
 const handleMySectorClick = async ({
@@ -332,6 +348,14 @@ const handleMySectorClick = async ({
 
     if (ability.kind === AbilityKind.DeployTieFighter) {
         if (!canDeployTieFighterAt(x, y)) return;
+
+        await sessionStore.useAbility(sessionId, playerName, ability.kind, x, y);
+        markAbilityUsed(ability.entityId);
+        return;
+    }
+
+    if (ability.kind === AbilityKind.PlaceSpaceMine) {
+        if (!canDeploySpaceMineAt(x, y)) return;
 
         await sessionStore.useAbility(sessionId, playerName, ability.kind, x, y);
         markAbilityUsed(ability.entityId);

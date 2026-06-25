@@ -3,6 +3,7 @@ import { getDeploymentUnitAsset } from '@/data/deploymentUnits';
 
 export enum AbilityKind {
     DeployTieFighter = 'deploy-tie-fighter',
+    PlaceSpaceMine = 'place-space-mine',
     OpponentStrike = 'opponent-strike',
     PlaceShield = 'place-shield',
     AirborneSuperiority = 'airborne-superiority',
@@ -30,6 +31,12 @@ const ABILITY_DEFINITIONS: Partial<Record<EntityType, AbilityDefinition>> = {
         name: 'Tie Fighter Reinforcement',
         description: 'Deploy a Tie Fighter to the sector. Does not end your turn.',
         kind: AbilityKind.DeployTieFighter,
+        target: 'own',
+    },
+    [EntityType.GozantiClassCruiser]: {
+        name: 'Space Mines',
+        description: 'Place a Space Mine on your map. Does not end your turn.',
+        kind: AbilityKind.PlaceSpaceMine,
         target: 'own',
     },
     [EntityType.TieFighter]: {
