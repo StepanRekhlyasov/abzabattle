@@ -1,6 +1,6 @@
 <template>
     <main-layout>
-        <div class="wrapper">
+        <div class="wrapper" style="padding: 10px;">
             <div class="item sessions">
                 <button @click="goToCreateSession" class="generic-button">
                     Create Session

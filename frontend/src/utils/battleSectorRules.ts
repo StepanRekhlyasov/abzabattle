@@ -18,5 +18,5 @@ export function canPlaceShieldOnSector(
 }
 
 export function isShieldVisible(sector: BattleSector): boolean {
-    return !!sector.shielded && !sector.destroyed && (!sector.hidden || !!sector.shieldRevealed);
+    return !!sector.shielded && !sector.destroyed && !sector.hidden;
 }

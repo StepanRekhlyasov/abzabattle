@@ -4,40 +4,6 @@ namespace backend.Services;
 
 public static class BattleMapValidator
 {
-    public static bool HasDeployedUnits(string battleMapJson)
-    {
-        using var document = JsonDocument.Parse(battleMapJson);
-        if (!document.RootElement.TryGetProperty("sectors", out var sectors) ||
-            sectors.ValueKind != JsonValueKind.Array)
-        {
-            return false;
-        }
-
-        foreach (var row in sectors.EnumerateArray())
-        {
-            if (row.ValueKind != JsonValueKind.Array)
-            {
-                continue;
-            }
-
-            foreach (var sector in row.EnumerateArray())
-            {
-                if (!sector.TryGetProperty("entity", out var entity) ||
-                    !entity.TryGetProperty("type", out var type))
-                {
-                    continue;
-                }
-
-                if (type.GetString() is { } entityType && entityType != "empty")
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
     public static bool HasRemainingUnits(string battleMapJson)
     {
         using var document = JsonDocument.Parse(battleMapJson);

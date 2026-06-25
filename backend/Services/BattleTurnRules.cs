@@ -14,7 +14,7 @@ public static class BattleTurnRules
             return;
         }
 
-        if (outcome is StrikeOutcome.Hit or StrikeOutcome.ShieldReveal or StrikeOutcome.ShieldBreak)
+        if (outcome is StrikeOutcome.Hit or StrikeOutcome.ShieldBreak)
         {
             session.HitsThisTurn++;
             if (session.HitsThisTurn >= MaxHitsPerTurn)

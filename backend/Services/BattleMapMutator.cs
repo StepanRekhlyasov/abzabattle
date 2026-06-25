@@ -37,36 +37,7 @@ public static class BattleMapMutator
             return false;
         }
 
-        var entityType = sector["entity"]?["type"]?.GetValue<string>();
-        var isUnit = entityType is not null and not "empty";
-        var shielded = sector["shielded"]?.GetValue<bool>() ?? false;
-        var shieldRevealed = sector["shieldRevealed"]?.GetValue<bool>() ?? false;
-
-        if (shielded && isUnit)
-        {
-            if (!shieldRevealed)
-            {
-                sector["hidden"] = false;
-                sector["shieldRevealed"] = true;
-                outcome = StrikeOutcome.ShieldReveal;
-                updatedJson = root.ToJsonString(JsonOptions);
-                return true;
-            }
-
-            sector["shielded"] = false;
-            sector["shieldRevealed"] = true;
-            sector["hidden"] = false;
-            sector["destroyed"] = false;
-            outcome = StrikeOutcome.ShieldBreak;
-            updatedJson = root.ToJsonString(JsonOptions);
-            return true;
-        }
-
-        outcome = isUnit ? StrikeOutcome.Hit : StrikeOutcome.Miss;
-        sector["hidden"] = false;
-        sector["destroyed"] = true;
-        updatedJson = root.ToJsonString(JsonOptions);
-        return true;
+        return TryHitTheSector(sector, out updatedJson, out outcome, root);
     }
 
     public static bool TryAirborneSuperiorityStrike(
@@ -110,34 +81,7 @@ public static class BattleMapMutator
             return true;
         }
 
-        var shielded = sector["shielded"]?.GetValue<bool>() ?? false;
-        var shieldRevealed = sector["shieldRevealed"]?.GetValue<bool>() ?? false;
-
-        if (shielded)
-        {
-            if (!shieldRevealed)
-            {
-                sector["hidden"] = false;
-                sector["shieldRevealed"] = true;
-                outcome = StrikeOutcome.ShieldReveal;
-                updatedJson = root.ToJsonString(JsonOptions);
-                return true;
-            }
-
-            sector["shielded"] = false;
-            sector["shieldRevealed"] = true;
-            sector["hidden"] = false;
-            sector["destroyed"] = false;
-            outcome = StrikeOutcome.ShieldBreak;
-            updatedJson = root.ToJsonString(JsonOptions);
-            return true;
-        }
-
-        outcome = StrikeOutcome.Hit;
-        sector["hidden"] = false;
-        sector["destroyed"] = true;
-        updatedJson = root.ToJsonString(JsonOptions);
-        return true;
+        return TryHitTheSector(sector, out updatedJson, out outcome, root);
     }
 
     public static bool TryBombardmentStrike(
@@ -176,44 +120,7 @@ public static class BattleMapMutator
             return true;
         }
 
-        var isUnit = entityType is not null and not "empty";
-        if (!isUnit)
-        {
-            sector["hidden"] = false;
-            sector["destroyed"] = true;
-            outcome = StrikeOutcome.Miss;
-            updatedJson = root.ToJsonString(JsonOptions);
-            return true;
-        }
-
-        var shielded = sector["shielded"]?.GetValue<bool>() ?? false;
-        var shieldRevealed = sector["shieldRevealed"]?.GetValue<bool>() ?? false;
-
-        if (shielded && isUnit)
-        {
-            if (!shieldRevealed)
-            {
-                sector["hidden"] = false;
-                sector["shieldRevealed"] = true;
-                outcome = StrikeOutcome.ShieldReveal;
-                updatedJson = root.ToJsonString(JsonOptions);
-                return true;
-            }
-
-            sector["shielded"] = false;
-            sector["shieldRevealed"] = true;
-            sector["hidden"] = false;
-            sector["destroyed"] = false;
-            outcome = StrikeOutcome.ShieldBreak;
-            updatedJson = root.ToJsonString(JsonOptions);
-            return true;
-        }
-
-        outcome = isUnit ? StrikeOutcome.Hit : StrikeOutcome.Miss;
-        sector["hidden"] = false;
-        sector["destroyed"] = true;
-        updatedJson = root.ToJsonString(JsonOptions);
-        return true;
+        return TryHitTheSector(sector, out updatedJson, out outcome, root);
     }
 
     public static bool TryDeployTieFighter(string battleMapJson, int x, int y, out string updatedJson)
@@ -250,6 +157,47 @@ public static class BattleMapMutator
         };
         sector["destroyed"] = false;
 
+        updatedJson = root.ToJsonString(JsonOptions);
+        return true;
+    }
+
+    private static bool TryHitTheSector(JsonObject sector, out string updatedJson, out StrikeOutcome outcome, JsonNode root)
+    {
+        var entityType = sector["entity"]?["type"]?.GetValue<string>();
+        var isUnit = entityType is not null and not "empty";
+        if (!isUnit)
+        {
+            sector["hidden"] = false;
+            sector["destroyed"] = true;
+            outcome = StrikeOutcome.Miss;
+            updatedJson = root.ToJsonString(JsonOptions);
+            return true;
+        }
+
+        var shielded = sector["shielded"]?.GetValue<bool>() ?? false;
+        var isHidden = sector["hidden"]?.GetValue<bool>() ?? false;
+
+        if (shielded && isUnit)
+        {
+            if (isHidden)
+            {
+                sector["hidden"] = false;
+                outcome = StrikeOutcome.Hit;
+                updatedJson = root.ToJsonString(JsonOptions);
+                return true;
+            }
+
+            sector["shielded"] = false;
+            sector["hidden"] = false;
+            sector["destroyed"] = false;
+            outcome = StrikeOutcome.ShieldBreak;
+            updatedJson = root.ToJsonString(JsonOptions);
+            return true;
+        }
+
+        outcome = isUnit ? StrikeOutcome.Hit : StrikeOutcome.Miss;
+        sector["hidden"] = false;
+        sector["destroyed"] = true;
         updatedJson = root.ToJsonString(JsonOptions);
         return true;
     }
@@ -298,7 +246,6 @@ public static class BattleMapMutator
         }
 
         sector["shielded"] = true;
-        sector["shieldRevealed"] = false;
 
         updatedJson = root.ToJsonString(JsonOptions);
         return true;
