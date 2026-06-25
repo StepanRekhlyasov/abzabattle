@@ -85,7 +85,6 @@ public class SessionController(
     {
         var sessions = await db.Sessions
             .AsNoTracking()
-            .Where(s => s.Status == SessionStatus.Pending || s.Status == SessionStatus.InProgress)
             .OrderByDescending(s => s.Id)
             .ToListAsync();
 
@@ -115,6 +114,16 @@ public class SessionController(
         if (session is null)
         {
             return NotFound(new { detail = "Session not found" });
+        }
+
+        if (session.Status == SessionStatus.Finished)
+        {
+            return Conflict(new { detail = "This session has already finished" });
+        }
+
+        if (session.Status == SessionStatus.InProgress)
+        {
+            return Conflict(new { detail = "Battle is already in progress" });
         }
 
         if (session.Status != SessionStatus.Pending)

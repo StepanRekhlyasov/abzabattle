@@ -11,6 +11,7 @@ public class SessionResponse
     public string CurrentTurn { get; set; } = null!;
     public string Status { get; set; } = null!;
     public bool CanJoin { get; set; }
+    public string? JoinBlockedReason { get; set; }
     public string CreatorPlayerName { get; set; } = null!;
     public string? WinnerPlayerName { get; set; }
     public int HitsThisTurn { get; set; }

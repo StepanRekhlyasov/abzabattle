@@ -16,6 +16,7 @@ export type Session = {
     currentTurn: Faction;
     status: SessionStatusEnum;
     canJoin?: boolean;
+    joinBlockedReason?: string | null;
     creatorPlayerName: string;
     winnerPlayerName?: string | null;
     hitsThisTurn: number;

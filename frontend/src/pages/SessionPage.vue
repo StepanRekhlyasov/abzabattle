@@ -84,7 +84,7 @@ const loadSession = async () => {
     error.value = null;
     try {
         const session = await sessionStore.loadSession(sessionId.value, currentUser.value?.name);
-        if (!isParticipant(session)) {
+        if (!isParticipant(session) && session.status !== 'finished') {
             error.value = 'You are not a participant of this session';
         }
     } catch {

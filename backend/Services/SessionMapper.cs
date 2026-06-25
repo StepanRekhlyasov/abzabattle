@@ -26,6 +26,10 @@ public static class SessionMapper
         var viewerIsImperial = viewerPlayerName == session.ImperialPlayerName;
         var isFinished = session.Status == SessionStatus.Finished;
 
+        var canJoin = session.Status == SessionStatus.Pending &&
+                      (!rebelOccupied || !imperialOccupied) &&
+                      !viewerIsParticipant;
+
         return new SessionResponse
         {
             Id = session.Id,
@@ -57,10 +61,40 @@ public static class SessionMapper
             CreatorPlayerName = session.CreatorPlayerName,
             WinnerPlayerName = session.WinnerPlayerName,
             HitsThisTurn = session.HitsThisTurn,
-            CanJoin = session.Status == SessionStatus.Pending &&
-                      (!rebelOccupied || !imperialOccupied) &&
-                      !viewerIsParticipant,
+            CanJoin = canJoin,
+            JoinBlockedReason = canJoin
+                ? null
+                : GetJoinBlockedReason(session, viewerIsParticipant, rebelOccupied, imperialOccupied),
         };
+    }
+
+    private static string? GetJoinBlockedReason(
+        GameSession session,
+        bool viewerIsParticipant,
+        bool rebelOccupied,
+        bool imperialOccupied)
+    {
+        if (viewerIsParticipant)
+        {
+            return null;
+        }
+
+        if (session.Status == SessionStatus.Finished)
+        {
+            return "This session has already finished";
+        }
+
+        if (session.Status == SessionStatus.InProgress)
+        {
+            return "Battle is already in progress";
+        }
+
+        if (session.Status == SessionStatus.Pending && rebelOccupied && imperialOccupied)
+        {
+            return "Session is full";
+        }
+
+        return "Cannot join this session";
     }
 
     public static PlayerResponse ToPlayer(string playerName, IReadOnlyDictionary<string, User>? users = null)

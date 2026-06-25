@@ -2,6 +2,23 @@
     <div class="battle-view">
         <h2 v-if="!finished" class="turn-title">{{ turnLabel }}</h2>
         <div class="battle-view-maps">
+            <template v-if="isSpectatorView">
+                <div
+                    v-if="rebelBattleMap"
+                    class="battle-view-panel battle-view-panel--readonly"
+                >
+                    <h3 class="battle-view-title">{{ rebelMapTitle }}</h3>
+                    <battle-map :battle-map-data="rebelBattleMap" />
+                </div>
+                <div
+                    v-if="imperialBattleMap"
+                    class="battle-view-panel battle-view-panel--readonly"
+                >
+                    <h3 class="battle-view-title">{{ imperialMapTitle }}</h3>
+                    <battle-map :battle-map-data="imperialBattleMap" />
+                </div>
+            </template>
+            <template v-else>
             <div
                 class="battle-view-panel"
                 :class="{
@@ -34,6 +51,7 @@
                     @sector-click="handleOpponentSectorClick"
                 />
             </div>
+            </template>
             <div v-if="!finished && myAbilities.length" class="special-abilities">
                 <ability
                     v-for="ability in myAbilities"
@@ -90,6 +108,23 @@ const myFaction = computed(() => {
     const name = userStore.currentUser?.name;
     if (!name || !currentSession.value) return null;
     return sessionStore.myFaction(name);
+});
+
+const isSpectator = computed(() => myFaction.value === null);
+
+const isSpectatorView = computed(() => props.finished && isSpectator.value);
+
+const rebelBattleMap = computed(() => currentSession.value?.rebel.battleMap ?? null);
+const imperialBattleMap = computed(() => currentSession.value?.imperial.battleMap ?? null);
+
+const rebelMapTitle = computed(() => {
+    const playerName = currentSession.value?.rebel.player?.name;
+    return playerName ? `Rebel map (${playerName})` : 'Rebel map';
+});
+
+const imperialMapTitle = computed(() => {
+    const playerName = currentSession.value?.imperial.player?.name;
+    return playerName ? `Imperial map (${playerName})` : 'Imperial map';
 });
 
 const isMyTurn = computed(() => {

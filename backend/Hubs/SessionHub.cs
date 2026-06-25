@@ -23,7 +23,6 @@ public class SessionHub(
         connections.Connect(Context.ConnectionId, viewer);
         var sessions = await db.Sessions
             .AsNoTracking()
-            .Where(s => s.Status == SessionStatus.Pending || s.Status == SessionStatus.InProgress)
             .OrderByDescending(s => s.Id)
             .ToListAsync();
         var users = await sessionUsers.GetUsersForSessionsAsync(sessions);
