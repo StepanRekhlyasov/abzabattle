@@ -36,7 +36,7 @@ export const TIE_FIGHTERS_PER_ABILITY = 3;
 
 const PASSIVE_ABILITY_DEFINITIONS: Partial<Record<EntityType, Omit<PassiveAbility, 'id' | 'image'>>> = {
     [EntityType.DeathStar]: {
-        name: 'Fatal Flaw',
+        name: 'Fatal Construction Flaw',
         description: 'A fatal design flaw leaves the Death Star vulnerable: a lucky starfighter may destroy the entire station with a single shot to the reactor (the central sector)!',
     },
 };
@@ -50,7 +50,7 @@ const ABILITY_DEFINITIONS: Partial<Record<EntityType, AbilityDefinition>> = {
     },
     [EntityType.GozantiClassCruiser]: {
         name: 'Space Mines',
-        description: 'Place a Space Mine on your map. Does not end your turn.',
+        description: 'Place a Space Mine on your map. Space Mine ends the opponent\'s turn on hit. Does not end your turn.',
         kind: AbilityKind.PlaceSpaceMine,
         target: 'own',
     },
@@ -79,14 +79,14 @@ const ABILITY_DEFINITIONS: Partial<Record<EntityType, AbilityDefinition>> = {
         target: 'own',
     },
     [EntityType.XWing]: {
-        name: 'Airborne Superiority',
-        description: 'Fire at a sector on the opponent map. Destroys Tie Fighters. Reveals other units without destroying them. Does not end your turn.',
+        name: 'One In a Million',
+        description: 'Fire at a sector on the opponent map. Destroys Tie Fighters. Reveals other units without destroying them. Have 50% change to destroy Death Star if hitting the middle sector. Does not end your turn.',
         kind: AbilityKind.AirborneSuperiority,
         target: 'opponent',
     },
     [EntityType.UWing]: {
         name: 'Bombardment',
-        description: 'Fire at a sector on the opponent map. Reveals Tie Fighters without destroying them. Does not end your turn.',
+        description: 'Fire at a sector on the opponent map. Reveals Tie Fighters without destroying them. Have 50% change to destroy Death Star if hitting the middle sector. Does not end your turn.',
         kind: AbilityKind.Bombardment,
         target: 'opponent',
     },
@@ -110,6 +110,39 @@ export function toPassiveAbility(entityId: string, type: EntityType): PassiveAbi
 
 export function getAbilityDefinition(type: EntityType): AbilityDefinition | null {
     return ABILITY_DEFINITIONS[type] ?? null;
+}
+
+export type UnitDraftTrait = {
+    label: 'Ability' | 'Passive Trait';
+    name: string;
+    description: string;
+    passive: boolean;
+};
+
+export function getUnitDraftTraits(type: EntityType): UnitDraftTrait[] {
+    const traits: UnitDraftTrait[] = [];
+    const ability = getAbilityDefinition(type);
+
+    if (ability) {
+        traits.push({
+            label: 'Ability',
+            name: ability.name,
+            description: ability.description,
+            passive: false,
+        });
+    }
+
+    const passive = getPassiveAbilityDefinition(type);
+    if (passive) {
+        traits.push({
+            label: 'Passive Trait',
+            name: passive.name,
+            description: passive.description,
+            passive: true,
+        });
+    }
+
+    return traits;
 }
 
 export function toUnitAbility(entityId: string, type: EntityType): UnitAbility | null {
