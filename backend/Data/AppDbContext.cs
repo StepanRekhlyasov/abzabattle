@@ -7,6 +7,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<GameSession> Sessions => Set<GameSession>();
+    public DbSet<SessionActionLog> SessionActionLogs => Set<SessionActionLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,6 +35,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.ImperialBattleMapJson).HasColumnType("longtext");
             entity.Property(e => e.WinnerPlayerName).HasMaxLength(255);
             entity.Property(e => e.HitsThisTurn).HasDefaultValue(0);
+        });
+
+        modelBuilder.Entity<SessionActionLog>(entity =>
+        {
+            entity.ToTable("session_action_logs");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.PlayerName).HasMaxLength(255);
+            entity.Property(e => e.ActionKind).HasMaxLength(64);
+            entity.Property(e => e.Message).HasColumnType("text");
+            entity.Property(e => e.PayloadJson).HasColumnType("longtext");
+            entity.HasIndex(e => new { e.SessionId, e.Sequence }).IsUnique();
         });
     }
 }

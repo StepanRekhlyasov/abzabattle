@@ -58,8 +58,8 @@
                     :key="ability.entityId"
                     :ability="ability"
                     :selected="selectedAbilityId === ability.entityId"
-                    :used="usedAbilityIds.has(ability.entityId)"
-                    :disabled="!isMyTurn || isActionPending"
+                    :used="!!currentSession && sessionStore.isAbilityUsed(currentSession.id, ability.entityId)"
+                    :disabled="!isMyTurn || isLoading"
                     @select="handleAbilitySelect"
                 />
             </div>
@@ -74,6 +74,7 @@ import Ability from '@/components/widgets/Ability.vue';
 import { AbilityKind } from '@/data/unitAbilities';
 import { useBattleMap } from '@/composables/useBattleMap';
 import { useSessionStore } from '@/stores/session.store';
+import { useAppStore } from '@/stores/app.store';
 import { useUserStore } from '@/stores/user.store';
 import { EntityRotation, EntityType } from '@/types/entity';
 import type { BattleSector } from '@/types/map';
@@ -89,13 +90,12 @@ const props = withDefaults(defineProps<{
 });
 
 const sessionStore = useSessionStore();
+const appStore = useAppStore();
 const userStore = useUserStore();
 const { getPlacementPreview } = useBattleMap();
 const { currentSession } = storeToRefs(sessionStore);
-const isActionPending = ref(false);
+const { isLoading } = storeToRefs(appStore);
 const selectedAbilityId = ref<string | null>(null);
-const usedAbilityIds = ref<Set<string>>(new Set());
-const turnResetKey = ref<string | null>(null);
 const ownMapHoverAnchor = ref<{ x: number; y: number } | null>(null);
 
 const deployTieFighterEntity = {
@@ -203,21 +203,22 @@ watch(
     () => currentSession.value
         ? `${currentSession.value.id}:${currentSession.value.currentTurn}`
         : null,
-    (key) => {
-        if (!key || key === turnResetKey.value) return;
-        turnResetKey.value = key;
-        usedAbilityIds.value = new Set();
+    () => {
         selectedAbilityId.value = null;
+        ownMapHoverAnchor.value = null;
     },
 );
 
 const handleAbilitySelect = (entityId: string) => {
-    if (!isMyTurn.value || usedAbilityIds.value.has(entityId)) return;
+    const sessionId = currentSession.value?.id;
+    if (!sessionId || !isMyTurn.value || sessionStore.isAbilityUsed(sessionId, entityId)) return;
     selectedAbilityId.value = selectedAbilityId.value === entityId ? null : entityId;
 };
 
 const markAbilityUsed = (entityId: string) => {
-    usedAbilityIds.value = new Set([...usedAbilityIds.value, entityId]);
+    const sessionId = currentSession.value?.id;
+    if (!sessionId) return;
+    sessionStore.markAbilityUsed(sessionId, entityId);
     selectedAbilityId.value = null;
     ownMapHoverAnchor.value = null;
 };
@@ -254,39 +255,29 @@ const handleMySectorClick = async ({
     const sessionId = currentSession.value?.id;
     const ability = selectedAbility.value;
 
-    if (!playerName || !sessionId || isActionPending.value || !isMyTurn.value || !ability) return;
+    if (!playerName || !sessionId || isLoading.value || !isMyTurn.value || !ability) return;
     if (ability.target !== 'own') return;
 
     if (ability.kind === AbilityKind.DeployTieFighter) {
         if (!canDeployTieFighterAt(x, y)) return;
 
-        isActionPending.value = true;
-        try {
-            await sessionStore.useAbility(sessionId, playerName, ability.kind, x, y);
-            markAbilityUsed(ability.entityId);
-        } finally {
-            isActionPending.value = false;
-        }
+        await sessionStore.useAbility(sessionId, playerName, ability.kind, x, y);
+        markAbilityUsed(ability.entityId);
         return;
     }
 
     if (ability.kind === AbilityKind.PlaceShield) {
         if (!canPlaceShieldOnSector(sector, ability.entityId)) return;
 
-        isActionPending.value = true;
-        try {
-            await sessionStore.useAbility(
-                sessionId,
-                playerName,
-                ability.kind,
-                x,
-                y,
-                ability.entityId,
-            );
-            markAbilityUsed(ability.entityId);
-        } finally {
-            isActionPending.value = false;
-        }
+        await sessionStore.useAbility(
+            sessionId,
+            playerName,
+            ability.kind,
+            x,
+            y,
+            ability.entityId,
+        );
+        markAbilityUsed(ability.entityId);
     }
 };
 
@@ -304,7 +295,7 @@ const handleOpponentSectorClick = async ({
     const sessionId = currentSession.value?.id;
     const ability = selectedAbility.value;
 
-    if (!playerName || !sessionId || isActionPending.value || !isMyTurn.value) return;
+    if (!playerName || !sessionId || isLoading.value || !isMyTurn.value) return;
 
     if (ability) {
         if (ability.target !== 'opponent') return;
@@ -313,24 +304,14 @@ const handleOpponentSectorClick = async ({
             && ability.kind !== AbilityKind.Bombardment) return;
         if (!canAttackSector(sector)) return;
 
-        isActionPending.value = true;
-        try {
-            await sessionStore.useAbility(sessionId, playerName, ability.kind, x, y);
-            markAbilityUsed(ability.entityId);
-        } finally {
-            isActionPending.value = false;
-        }
+        await sessionStore.useAbility(sessionId, playerName, ability.kind, x, y);
+        markAbilityUsed(ability.entityId);
         return;
     }
 
     if (!canAttackSector(sector)) return;
 
-    isActionPending.value = true;
-    try {
-        await sessionStore.attackSector(sessionId, playerName, x, y);
-    } finally {
-        isActionPending.value = false;
-    }
+    await sessionStore.attackSector(sessionId, playerName, x, y);
 };
 </script>
 

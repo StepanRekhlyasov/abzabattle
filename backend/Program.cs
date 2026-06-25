@@ -11,6 +11,7 @@ builder.Services.AddSingleton<PresenceService>();
 builder.Services.AddSingleton<SessionConnectionService>();
 builder.Services.AddScoped<SessionUserService>();
 builder.Services.AddScoped<SessionBroadcastService>();
+builder.Services.AddScoped<SessionActionLogger>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),

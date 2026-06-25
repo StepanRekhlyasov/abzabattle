@@ -12,7 +12,8 @@ namespace backend.Controllers;
 public class SessionController(
     AppDbContext db,
     SessionBroadcastService broadcast,
-    SessionUserService sessionUsers) : ControllerBase
+    SessionUserService sessionUsers,
+    SessionActionLogger actionLogger) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<SessionResponse>> Create([FromBody] CreateSessionRequest request)
@@ -105,6 +106,28 @@ public class SessionController(
 
         var viewer = string.IsNullOrWhiteSpace(playerName) ? null : playerName.Trim();
         return Ok(await ToResponseAsync(session, viewer));
+    }
+
+    [HttpGet("{id:guid}/history")]
+    public async Task<ActionResult<IEnumerable<SessionActionLogResponse>>> GetHistory(Guid id)
+    {
+        var sessionExists = await db.Sessions.AsNoTracking().AnyAsync(s => s.Id == id);
+        if (!sessionExists)
+        {
+            return NotFound(new { detail = "Session not found" });
+        }
+
+        var logs = await actionLogger.GetLogsAsync(id);
+        return Ok(logs.Select(log => new SessionActionLogResponse
+        {
+            Id = log.Id,
+            Sequence = log.Sequence,
+            PlayerName = log.PlayerName,
+            ActionKind = log.ActionKind,
+            Message = log.Message,
+            PayloadJson = log.PayloadJson,
+            CreatedAt = log.CreatedAt,
+        }));
     }
 
     [HttpPost("{id:guid}/join")]
@@ -286,9 +309,25 @@ public class SessionController(
             session.RebelBattleMapJson = updatedMapJson;
         }
 
+        var turnBefore = session.CurrentTurn;
+        var shotNumber = session.HitsThisTurn + 1;
+        var targetBefore = BattleMapReader.TryGetSectorTarget(opponentMapJson, request.X, request.Y);
 
         await CheckEndGameConditions(session, updatedMapJson, playerName);
         BattleTurnRules.ApplyNormalAttackOutcome(session, outcome);
+        var endedTurn = session.CurrentTurn != turnBefore;
+
+        await actionLogger.LogAttackAsync(
+            session,
+            playerName,
+            request.X,
+            request.Y,
+            shotNumber,
+            targetBefore,
+            outcome,
+            updatedMapJson,
+            endedTurn);
+
         await db.SaveChangesAsync();
         await broadcast.BroadcastUpdatedAsync(session);
 
@@ -335,6 +374,7 @@ public class SessionController(
         {
             case "deploy-tie-fighter":
             {
+                var targetBefore = BattleMapReader.TryGetSectorTarget(ownMapJson, request.X, request.Y);
 
                 if (!BattleMapMutator.TryDeployTieFighter(ownMapJson, request.X, request.Y, out var updatedOwnMapJson))
                 {
@@ -342,11 +382,23 @@ public class SessionController(
                 }
 
                 session.ImperialBattleMapJson = updatedOwnMapJson;
+                await actionLogger.LogAbilityAsync(
+                    session,
+                    playerName,
+                    request.AbilityKind,
+                    request.X,
+                    request.Y,
+                    targetBefore,
+                    null,
+                    updatedOwnMapJson,
+                    isRebel);
 
                 break;
             }
             case "opponent-strike":
             {
+                var targetBefore = BattleMapReader.TryGetSectorTarget(opponentMapJson, request.X, request.Y);
+
                 if (!BattleMapMutator.TryStrikeSector(opponentMapJson, request.X, request.Y, out var updatedMapJson, out var outcome))
                 {
                     return BadRequest(new { detail = "Sector cannot be attacked" });
@@ -361,10 +413,23 @@ public class SessionController(
                     session.RebelBattleMapJson = updatedMapJson;
                 }
 
+                await actionLogger.LogAbilityAsync(
+                    session,
+                    playerName,
+                    request.AbilityKind,
+                    request.X,
+                    request.Y,
+                    targetBefore,
+                    outcome,
+                    updatedMapJson,
+                    isRebel);
+
                 break;
             }
             case "airborne-superiority":
             {
+                var targetBefore = BattleMapReader.TryGetSectorTarget(opponentMapJson, request.X, request.Y);
+
                 if (!BattleMapMutator.TryAirborneSuperiorityStrike(
                         opponentMapJson,
                         request.X,
@@ -384,10 +449,23 @@ public class SessionController(
                     session.RebelBattleMapJson = updatedMapJson;
                 }
 
+                await actionLogger.LogAbilityAsync(
+                    session,
+                    playerName,
+                    request.AbilityKind,
+                    request.X,
+                    request.Y,
+                    targetBefore,
+                    outcome,
+                    updatedMapJson,
+                    isRebel);
+
                 break;
             }
             case "bombardment":
             {
+                var targetBefore = BattleMapReader.TryGetSectorTarget(opponentMapJson, request.X, request.Y);
+
                 if (!BattleMapMutator.TryBombardmentStrike(
                         opponentMapJson,
                         request.X,
@@ -407,10 +485,23 @@ public class SessionController(
                     session.RebelBattleMapJson = updatedMapJson;
                 }
 
+                await actionLogger.LogAbilityAsync(
+                    session,
+                    playerName,
+                    request.AbilityKind,
+                    request.X,
+                    request.Y,
+                    targetBefore,
+                    outcome,
+                    updatedMapJson,
+                    isRebel);
+
                 break;
             }
             case "place-shield":
             {
+                var targetBefore = BattleMapReader.TryGetSectorTarget(ownMapJson, request.X, request.Y);
+
                 if (string.IsNullOrWhiteSpace(request.SourceEntityId))
                 {
                     return BadRequest(new { detail = "Source entity is required" });
@@ -427,6 +518,16 @@ public class SessionController(
                 }
 
                 session.RebelBattleMapJson = updatedOwnMapJson;
+                await actionLogger.LogAbilityAsync(
+                    session,
+                    playerName,
+                    request.AbilityKind,
+                    null,
+                    null,
+                    targetBefore,
+                    null,
+                    updatedOwnMapJson,
+                    isRebel);
 
                 break;
             }

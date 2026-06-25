@@ -1,6 +1,7 @@
 import api from '@/services/api';
 import type { BattleMap } from '@/types/map';
 import type { Faction, Session } from '@/types/session';
+import type { SessionActionLog } from '@/types/turnHistory';
 
 export type CreateSessionPayload = {
     name: string;
@@ -59,5 +60,10 @@ export async function attackSector(id: string, payload: AttackSectorPayload) {
 
 export async function useAbility(id: string, payload: UseAbilityPayload) {
     const response = await api.post<Session>(`/sessions/${id}/ability`, payload);
+    return response.data;
+}
+
+export async function fetchSessionHistory(id: string) {
+    const response = await api.get<SessionActionLog[]>(`/sessions/${id}/history`);
     return response.data;
 }

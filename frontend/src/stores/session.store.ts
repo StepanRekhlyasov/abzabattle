@@ -5,6 +5,7 @@ import { defineStore } from 'pinia';
 import * as sessionApi from '@/services/sessionApi';
 import type { CreateSessionPayload } from '@/services/sessionApi';
 import { useUserStore } from '@/stores/user.store';
+import { useAppStore } from '@/stores/app.store';
 
 function getPlayerFaction(session: Session, playerName: string): Faction | null {
     if (session.rebel.player?.name === playerName) return Faction.Rebel;
@@ -39,10 +40,16 @@ function getPlayerInSession(session: Session, playerName: string): Player | null
     return null;
 }
 
+function getAbilityTurnKey(session: Session) {
+    return session.currentTurn;
+}
+
 export const useSessionStore = defineStore('session', {
     state: () => ({
         onlineSessions: [] as Session[],
         currentSession: null as Session | null,
+        usedAbilityIdsBySession: {} as Record<string, string[]>,
+        abilityTurnKeyBySession: {} as Record<string, string>,
     }),
     getters: {
         myFaction: (state) => (playerName: string) => {
@@ -60,6 +67,8 @@ export const useSessionStore = defineStore('session', {
             const faction = getPlayerFaction(state.currentSession, playerName);
             return faction !== null && state.currentSession.currentTurn === faction;
         },
+        usedAbilityIdsForSession: (state) => (sessionId: string) =>
+            state.usedAbilityIdsBySession[sessionId] ?? [],
     },
     actions: {
         setOnlineSessions(sessions: Session[]) {
@@ -67,6 +76,41 @@ export const useSessionStore = defineStore('session', {
         },
         setCurrentSession(session: Session | null) {
             this.currentSession = session;
+        },
+        syncAbilityTurnState(session: Session) {
+            const turnKey = getAbilityTurnKey(session);
+            if (this.abilityTurnKeyBySession[session.id] !== turnKey) {
+                this.abilityTurnKeyBySession = {
+                    ...this.abilityTurnKeyBySession,
+                    [session.id]: turnKey,
+                };
+                this.usedAbilityIdsBySession = {
+                    ...this.usedAbilityIdsBySession,
+                    [session.id]: [],
+                };
+                return;
+            }
+
+            if (!this.usedAbilityIdsBySession[session.id]) {
+                this.usedAbilityIdsBySession = {
+                    ...this.usedAbilityIdsBySession,
+                    [session.id]: [],
+                };
+            }
+        },
+        isAbilityUsed(sessionId: string, entityId: string) {
+            return this.usedAbilityIdsBySession[sessionId]?.includes(entityId) ?? false;
+        },
+        markAbilityUsed(sessionId: string, entityId: string) {
+            const usedIds = this.usedAbilityIdsBySession[sessionId] ?? [];
+            if (usedIds.includes(entityId)) {
+                return;
+            }
+
+            this.usedAbilityIdsBySession = {
+                ...this.usedAbilityIdsBySession,
+                [sessionId]: [...usedIds, entityId],
+            };
         },
         applySessionUpdate(session: Session) {
             const index = this.onlineSessions.findIndex(item => item.id === session.id);
@@ -76,10 +120,12 @@ export const useSessionStore = defineStore('session', {
                 this.onlineSessions[index] = session;
             }
             if (this.currentSession?.id === session.id) {
+                this.syncAbilityTurnState(session);
                 this.currentSession = session;
             }
         },
         commitSession(session: Session) {
+            this.syncAbilityTurnState(session);
             this.currentSession = session;
             this.applySessionUpdate(session);
             syncCurrentUserStats(session);
@@ -108,9 +154,15 @@ export const useSessionStore = defineStore('session', {
             return session;
         },
         async attackSector(id: string, playerName: string, x: number, y: number) {
-            const session = await sessionApi.attackSector(id, { playerName, x, y });
-            this.commitSession(session);
-            return session;
+            const appStore = useAppStore();
+            appStore.setLoading(true);
+            try {
+                const session = await sessionApi.attackSector(id, { playerName, x, y });
+                this.commitSession(session);
+                return session;
+            } finally {
+                appStore.setLoading(false);
+            }
         },
         async useAbility(
             id: string,
@@ -120,15 +172,21 @@ export const useSessionStore = defineStore('session', {
             y: number,
             sourceEntityId?: string,
         ) {
-            const session = await sessionApi.useAbility(id, {
-                playerName,
-                abilityKind,
-                x,
-                y,
-                sourceEntityId,
-            });
-            this.commitSession(session);
-            return session;
+            const appStore = useAppStore();
+            appStore.setLoading(true);
+            try {
+                const session = await sessionApi.useAbility(id, {
+                    playerName,
+                    abilityKind,
+                    x,
+                    y,
+                    sourceEntityId,
+                });
+                this.commitSession(session);
+                return session;
+            } finally {
+                appStore.setLoading(false);
+            }
         },
         isWaitingForOpponent(playerName: string) {
             if (!this.currentSession) return false;
@@ -154,5 +212,8 @@ export const useSessionStore = defineStore('session', {
         isFinishedPhase() {
             return this.currentSession?.status === 'finished';
         },
+    },
+    persist: {
+        pick: ['usedAbilityIdsBySession', 'abilityTurnKeyBySession'],
     },
 });
