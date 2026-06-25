@@ -101,6 +101,8 @@ const emit = defineEmits<{
     (e: 'action', payload?: { sessionName: string }): void;
 }>();
 
+type SectorPointerEvent = { sector: BattleSector; x: number; y: number };
+
 const draftStore = useDraftStore();
 const { battleMap, selectedFaction, ptsLimit, selectedEntity, selectedRotation, ptsRemaining, isPtsOverLimit } = storeToRefs(draftStore);
 
@@ -175,15 +177,7 @@ const handleSectorClick = ({ x, y }: { x: number; y: number }) => {
     hoverAnchor.value = null;
 };
 
-const handleSectorContextMenu = ({
-    sector,
-    x,
-    y,
-}: {
-    sector: BattleSector;
-    x: number;
-    y: number;
-}) => {
+function handleSectorContextMenu({ sector, x, y }: SectorPointerEvent) {
     if (!battleMap.value || sector.entity.type === EntityType.Empty) return;
 
     const removedType = removeEntityAt(battleMap.value, { x, y });
@@ -191,7 +185,7 @@ const handleSectorContextMenu = ({
 
     draftStore.addPtsSpent(-getEntityDefinition(removedType).ptsCost);
     hoverAnchor.value = null;
-};
+}
 
 const handleKeyDown = (event: KeyboardEvent) => {
     if (!isRotateKey(event.key) || isEditableTarget(event.target)) return;
