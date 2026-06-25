@@ -1,4 +1,5 @@
 import * as signalR from '@microsoft/signalr'
+import router from '@/router'
 import { useSessionStore } from '@/stores/session.store'
 import type { Session } from '@/types/session'
 
@@ -15,6 +16,14 @@ function registerHandlers(hub: signalR.HubConnection) {
             return;
         }
         sessionStore.applySessionUpdate(session);
+    })
+    hub.on('SessionDeleted', (sessionId: string) => {
+        const sessionStore = useSessionStore();
+        const wasCurrent = sessionStore.currentSession?.id === sessionId;
+        sessionStore.removeSession(sessionId);
+        if (wasCurrent) {
+            void router.push('/');
+        }
     })
 }
 

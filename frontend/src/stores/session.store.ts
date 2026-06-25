@@ -124,6 +124,18 @@ export const useSessionStore = defineStore('session', {
                 this.currentSession = session;
             }
         },
+        removeSession(sessionId: string) {
+            this.onlineSessions = this.onlineSessions.filter(session => session.id !== sessionId);
+            if (this.currentSession?.id === sessionId) {
+                this.currentSession = null;
+            }
+
+            const { [sessionId]: _usedIds, ...remainingUsedIds } = this.usedAbilityIdsBySession;
+            this.usedAbilityIdsBySession = remainingUsedIds;
+
+            const { [sessionId]: _turnKey, ...remainingTurnKeys } = this.abilityTurnKeyBySession;
+            this.abilityTurnKeyBySession = remainingTurnKeys;
+        },
         commitSession(session: Session) {
             this.syncAbilityTurnState(session);
             this.currentSession = session;
@@ -187,6 +199,10 @@ export const useSessionStore = defineStore('session', {
             } finally {
                 appStore.setLoading(false);
             }
+        },
+        async deleteSession(id: string, adminName: string) {
+            await sessionApi.deleteSession(id, adminName);
+            this.removeSession(id);
         },
         isWaitingForOpponent(playerName: string) {
             if (!this.currentSession) return false;

@@ -108,6 +108,29 @@ public class SessionController(
         return Ok(await ToResponseAsync(session, viewer));
     }
 
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id, [FromQuery] string adminName)
+    {
+        if (!AdminAuth.IsAdmin(adminName))
+        {
+            return Forbid();
+        }
+
+        var session = await db.Sessions.FirstOrDefaultAsync(s => s.Id == id);
+        if (session is null)
+        {
+            return NotFound(new { detail = "Session not found" });
+        }
+
+        var logs = await db.SessionActionLogs.Where(l => l.SessionId == id).ToListAsync();
+        db.SessionActionLogs.RemoveRange(logs);
+        db.Sessions.Remove(session);
+        await db.SaveChangesAsync();
+        await broadcast.BroadcastDeletedAsync(id);
+
+        return NoContent();
+    }
+
     [HttpGet("{id:guid}/history")]
     public async Task<ActionResult<IEnumerable<SessionActionLogResponse>>> GetHistory(Guid id)
     {

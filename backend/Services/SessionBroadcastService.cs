@@ -19,4 +19,12 @@ public class SessionBroadcastService(
             await hub.Clients.Client(connectionId).SendAsync("SessionUpdated", response);
         }
     }
+
+    public async Task BroadcastDeletedAsync(Guid sessionId)
+    {
+        foreach (var (connectionId, _) in connections.GetConnections())
+        {
+            await hub.Clients.Client(connectionId).SendAsync("SessionDeleted", sessionId);
+        }
+    }
 }

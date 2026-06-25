@@ -12,6 +12,10 @@ function registerHandlers(hub: signalR.HubConnection) {
     hub.on('PresenceUpdated', (update: PresenceUpdate) => {
         useUserStore().updatePresence(update)
     })
+
+    hub.on('UserDeleted', (payload: { name: string }) => {
+        useUserStore().removeUser(payload.name)
+    })
 }
 
 export async function connectWs(name: string) {

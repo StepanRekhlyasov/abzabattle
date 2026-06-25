@@ -1,14 +1,19 @@
 using backend.Data;
 using backend.Dtos;
+using backend.Hubs;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers;
 
 [ApiController]
 [Route("api")]
-public class UserController(AppDbContext db, PresenceService presence) : ControllerBase
+public class UserController(
+    AppDbContext db,
+    PresenceService presence,
+    IHubContext<PresenceHub> presenceHub) : ControllerBase
 {
     [HttpGet("users")]
     public async Task<ActionResult<IEnumerable<UserResponse>>> GetUsers()
@@ -55,5 +60,33 @@ public class UserController(AppDbContext db, PresenceService presence) : Control
 
         var isOnline = presence.GetOnlineUsers().Contains(trimmedName, StringComparer.Ordinal);
         return Ok(UserMapper.ToResponse(user, isOnline));
+    }
+
+    [HttpDelete("users/{name}")]
+    public async Task<IActionResult> Delete(string name, [FromQuery] string adminName)
+    {
+        if (!AdminAuth.IsAdmin(adminName))
+        {
+            return Forbid();
+        }
+
+        var targetName = name.Trim();
+        if (AdminAuth.IsAdmin(targetName))
+        {
+            return BadRequest(new { detail = "Cannot delete admin user" });
+        }
+
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Name == targetName);
+        if (user is null)
+        {
+            return NotFound(new { detail = "User not found" });
+        }
+
+        db.Users.Remove(user);
+        await db.SaveChangesAsync();
+
+        await presenceHub.Clients.Group(PresenceHub.Channel).SendAsync("UserDeleted", new { name = targetName });
+
+        return NoContent();
     }
 }

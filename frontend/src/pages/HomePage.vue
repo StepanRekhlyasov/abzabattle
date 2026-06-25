@@ -33,7 +33,7 @@ const goToCreateSession = () => {
         flex-direction: column;
         gap: 10px;
         &.users {
-            width: 300px;
+            max-width: 400px;
         }
         &.sessions {
             width: 100%;

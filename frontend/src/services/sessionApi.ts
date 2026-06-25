@@ -67,3 +67,9 @@ export async function fetchSessionHistory(id: string) {
     const response = await api.get<SessionActionLog[]>(`/sessions/${id}/history`);
     return response.data;
 }
+
+export async function deleteSession(id: string, adminName: string) {
+    await api.delete(`/sessions/${id}`, {
+        params: { adminName },
+    });
+}

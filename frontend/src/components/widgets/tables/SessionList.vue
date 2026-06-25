@@ -8,6 +8,7 @@
                     <th>Imperial Player</th>
                     <th>Status</th>
                     <th></th>
+                    <th v-if="isCurrentUserAdmin"></th>
                 </tr>
             </thead>
             <tbody>
@@ -51,6 +52,17 @@
                             {{ session.joinBlockedReason ?? 'Cannot join this session' }}
                         </span>
                     </td>
+                    <td v-if="isCurrentUserAdmin" class="admin-actions">
+                        <button
+                            type="button"
+                            class="admin-delete-btn"
+                            title="Delete session"
+                            :disabled="deletingSessionId === session.id"
+                            @click="handleDeleteSession(session.id)"
+                        >
+                            ×
+                        </button>
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -58,9 +70,11 @@
 </template>
 
 <script setup lang="ts">
+import { computed, ref } from 'vue';
 import router from '@/router';
 import { useSessionStore } from '@/stores/session.store';
 import { useUserStore } from '@/stores/user.store';
+import { isAdmin } from '@/constants/admin';
 import type { Session } from '@/types/session';
 import { SessionStatusEnum } from '@/types/session';
 import { storeToRefs } from 'pinia';
@@ -68,6 +82,9 @@ import { storeToRefs } from 'pinia';
 const sessionStore = useSessionStore();
 const userStore = useUserStore();
 const { onlineSessions } = storeToRefs(sessionStore);
+const deletingSessionId = ref<string | null>(null);
+
+const isCurrentUserAdmin = computed(() => isAdmin(userStore.currentUser?.name));
 
 const isParticipant = (session: Session) => {
     const name = userStore.currentUser?.name;
@@ -98,6 +115,21 @@ const handleJoin = async (sessionId: string) => {
     await sessionStore.joinSession(sessionId, name);
     router.push(`/session/${sessionId}`);
 };
+
+const handleDeleteSession = async (sessionId: string) => {
+    const adminName = userStore.currentUser?.name;
+    if (!adminName || !isAdmin(adminName)) return;
+
+    deletingSessionId.value = sessionId;
+    try {
+        await sessionStore.deleteSession(sessionId, adminName);
+        if (sessionStore.currentSession?.id === sessionId) {
+            await router.push('/');
+        }
+    } finally {
+        deletingSessionId.value = null;
+    }
+};
 </script>
 
 <style scoped lang="scss">
@@ -109,5 +141,10 @@ const handleJoin = async (sessionId: string) => {
 .join-blocked-reason {
     color: #ffb74d;
     font-size: 0.85rem;
+}
+
+.admin-actions {
+    width: 36px;
+    text-align: center;
 }
 </style>

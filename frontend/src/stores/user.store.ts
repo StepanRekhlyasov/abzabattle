@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import type { Player } from "@/types/player";
 import type { PresenceUpdate } from "@/types/presence";
 import api from "@/services/api";
+import * as userApi from "@/services/userApi";
 
 export const useUserStore = defineStore('user', {
     state: () => ({
@@ -56,6 +57,13 @@ export const useUserStore = defineStore('user', {
                 totalGames: 0,
                 status: update.status,
             });
+        },
+        removeUser(name: string) {
+            this.users = this.users.filter(user => user.name !== name);
+        },
+        async deleteUser(targetName: string, adminName: string) {
+            await userApi.deleteUser(targetName, adminName);
+            this.removeUser(targetName);
         },
     },
     persist: {
