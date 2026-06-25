@@ -15,4 +15,5 @@ public class SessionResponse
     public string CreatorPlayerName { get; set; } = null!;
     public string? WinnerPlayerName { get; set; }
     public int HitsThisTurn { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

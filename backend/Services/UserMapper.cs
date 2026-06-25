@@ -11,6 +11,7 @@ public static class UserMapper
         Wins = user.Wins,
         Loses = user.Loses,
         TotalGames = user.TotalGames,
+        CreatedAt = user.CreatedAt,
         Status = isOnline ? "online" : "offline",
     };
 }

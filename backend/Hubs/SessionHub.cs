@@ -23,7 +23,7 @@ public class SessionHub(
         connections.Connect(Context.ConnectionId, viewer);
         var sessions = await db.Sessions
             .AsNoTracking()
-            .OrderByDescending(s => s.Id)
+            .OrderByDescending(s => s.CreatedAt)
             .ToListAsync();
         var users = await sessionUsers.GetUsersForSessionsAsync(sessions);
         var snapshot = sessions.Select(s => SessionMapper.ToResponse(s, viewer, users)).ToList();

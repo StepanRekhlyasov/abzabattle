@@ -61,6 +61,7 @@ public class SessionController(
             PtsLimit = request.PtsLimit,
             MapSize = request.MapSize,
             CreatorPlayerName = playerName,
+            CreatedAt = DateTime.UtcNow,
         };
 
         if (request.Faction == Faction.Rebel)
@@ -86,7 +87,7 @@ public class SessionController(
     {
         var sessions = await db.Sessions
             .AsNoTracking()
-            .OrderByDescending(s => s.Id)
+            .OrderByDescending(s => s.CreatedAt)
             .ToListAsync();
 
         var viewer = string.IsNullOrWhiteSpace(playerName) ? null : playerName.Trim();

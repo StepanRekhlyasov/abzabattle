@@ -19,6 +19,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.Wins).HasDefaultValue(0);
             entity.Property(e => e.Loses).HasDefaultValue(0);
             entity.Property(e => e.TotalGames).HasDefaultValue(0);
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime(6)");
         });
 
         modelBuilder.Entity<GameSession>(entity =>
@@ -35,6 +36,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.ImperialBattleMapJson).HasColumnType("longtext");
             entity.Property(e => e.WinnerPlayerName).HasMaxLength(255);
             entity.Property(e => e.HitsThisTurn).HasDefaultValue(0);
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime(6)");
         });
 
         modelBuilder.Entity<SessionActionLog>(entity =>

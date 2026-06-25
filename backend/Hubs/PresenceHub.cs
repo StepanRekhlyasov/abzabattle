@@ -61,7 +61,7 @@ public class PresenceHub(PresenceService presence, AppDbContext db) : Hub
         var onlineUsers = new HashSet<string>(presence.GetOnlineUsers(), StringComparer.Ordinal);
         var users = await db.Users
             .AsNoTracking()
-            .OrderBy(u => u.Name)
+            .OrderByDescending(u => u.CreatedAt)
             .ToListAsync();
 
         return users

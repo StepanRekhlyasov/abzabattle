@@ -23,7 +23,7 @@ public class LoginController(AppDbContext db) : ControllerBase
 
         if (!exists)
         {
-            db.Users.Add(new User { Name = name });
+            db.Users.Add(new User { Name = name, CreatedAt = DateTime.UtcNow });
             await db.SaveChangesAsync();
         }
 

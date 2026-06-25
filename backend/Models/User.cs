@@ -6,4 +6,5 @@ public class User
     public int Wins { get; set; }
     public int Loses { get; set; }
     public int TotalGames { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

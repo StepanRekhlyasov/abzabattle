@@ -62,6 +62,7 @@ public static class SessionMapper
             CreatorPlayerName = session.CreatorPlayerName,
             WinnerPlayerName = session.WinnerPlayerName,
             HitsThisTurn = session.HitsThisTurn,
+            CreatedAt = session.CreatedAt,
             CanJoin = canJoin,
             JoinBlockedReason = canJoin
                 ? null
@@ -123,6 +124,7 @@ public static class SessionMapper
         Wins = user.Wins,
         Loses = user.Loses,
         TotalGames = user.TotalGames,
+        CreatedAt = user.CreatedAt,
     };
 
     private static JsonElement? MapBattleMap(string? battleMapJson, bool? hideUnits, bool revealAll = false)

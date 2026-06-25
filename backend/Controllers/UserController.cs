@@ -21,7 +21,7 @@ public class UserController(
         var onlineUsers = new HashSet<string>(presence.GetOnlineUsers(), StringComparer.Ordinal);
         var users = await db.Users
             .AsNoTracking()
-            .OrderBy(u => u.Name)
+            .OrderByDescending(u => u.CreatedAt)
             .ToListAsync();
 
         return Ok(users.Select(user => UserMapper.ToResponse(user, onlineUsers.Contains(user.Name))));
@@ -34,7 +34,7 @@ public class UserController(
         var users = await db.Users
             .AsNoTracking()
             .Where(u => onlineNames.Contains(u.Name))
-            .OrderBy(u => u.Name)
+            .OrderByDescending(u => u.CreatedAt)
             .ToListAsync();
 
         return Ok(users.Select(user => UserMapper.ToResponse(user, isOnline: true)));

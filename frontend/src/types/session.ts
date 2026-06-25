@@ -20,6 +20,7 @@ export type Session = {
     creatorPlayerName: string;
     winnerPlayerName?: string | null;
     hitsThisTurn: number;
+    createdAt: string;
 }
 
 export enum SessionStatusEnum {
