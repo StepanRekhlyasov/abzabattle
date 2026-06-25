@@ -164,11 +164,13 @@ const handleGiveUp = async () => {
     height: 50px;
 }
 .main-layout-content {
-    height: calc(100% - 100px);
+    height: calc(100vh - 100px);
+    height: calc(100dvh - 100px);
     background-image: url('@/assets/images/background.png');
     background-size: cover;
     display: flex;
     flex-direction: column;
+    overflow: auto;
 }
 .main-layout-header-user {
     display: flex;
