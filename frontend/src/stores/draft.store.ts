@@ -43,5 +43,7 @@ export const useDraftStore = defineStore('draft', {
             this.isDrafting = isDrafting;
         },
     },
-    persist: true,
+    persist: {
+        pick: ['selectedEntity', 'selectedRotation', 'ptsSpent', 'ptsLimit', 'selectedFaction', 'battleMap'],
+    },
 });

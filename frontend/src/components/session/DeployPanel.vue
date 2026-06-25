@@ -77,7 +77,7 @@ import { EntityRotation, EntityType, type Entity } from '@/types/entity';
 import type { Faction } from '@/types/session';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/user.store';
-import { isRotateKey } from '@/utils/rotateKey';
+import { isRotateKey, isEditableTarget } from '@/utils/rotateKey';
 
 const props = withDefaults(defineProps<{
     readOnlySettings?: boolean;
@@ -175,12 +175,6 @@ const handleSectorClick = ({ x, y }: { x: number; y: number }) => {
     if (ptsRemaining.value < definition.ptsCost || !placeEntity(entity, { x, y }, battleMap.value)) return;
     draftStore.addPtsSpent(definition.ptsCost);
     hoverAnchor.value = null;
-};
-
-const isEditableTarget = (target: EventTarget | null) => {
-    if (!(target instanceof HTMLElement)) return false;
-    const tag = target.tagName;
-    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
 };
 
 const handleKeyDown = (event: KeyboardEvent) => {

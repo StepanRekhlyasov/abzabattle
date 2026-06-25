@@ -38,6 +38,7 @@ public class SessionActionLogger(AppDbContext db)
             targetEntityDisplayName = GetEntityDisplayName(targetBefore?.EntityType),
             isKill,
             endedTurn,
+            snapshot = BuildSnapshot(session),
         };
 
         await AddLogAsync(session.Id, playerName, "attack", message, payload, cancellationToken);
@@ -79,9 +80,29 @@ public class SessionActionLogger(AppDbContext db)
             targetEntityDisplayName = GetEntityDisplayName(targetBefore?.EntityType),
             isKill,
             endedTurn = false,
+            snapshot = BuildSnapshot(session),
         };
 
         await AddLogAsync(session.Id, playerName, abilityKind, message, payload, cancellationToken);
+    }
+
+    public async Task LogBattleStartAsync(
+        GameSession session,
+        CancellationToken cancellationToken = default)
+    {
+        var payload = new
+        {
+            actionKind = "battle-start",
+            snapshot = BuildSnapshot(session),
+        };
+
+        await AddLogAsync(
+            session.Id,
+            "system",
+            "battle-start",
+            "Battle started.",
+            payload,
+            cancellationToken);
     }
 
     public async Task<IReadOnlyList<SessionActionLog>> GetLogsAsync(
@@ -119,6 +140,24 @@ public class SessionActionLogger(AppDbContext db)
             PayloadJson = JsonSerializer.Serialize(payload, JsonOptions),
             CreatedAt = DateTime.UtcNow,
         });
+    }
+
+    private static object BuildSnapshot(GameSession session) => new
+    {
+        rebelBattleMap = ParseMapJson(session.RebelBattleMapJson),
+        imperialBattleMap = ParseMapJson(session.ImperialBattleMapJson),
+        currentTurn = session.CurrentTurn,
+        hitsThisTurn = session.HitsThisTurn,
+    };
+
+    private static object? ParseMapJson(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return null;
+        }
+
+        return JsonSerializer.Deserialize<JsonElement>(json);
     }
 
     private static bool IsKill(SectorTarget? targetBefore, StrikeOutcome outcome, string mapJson)

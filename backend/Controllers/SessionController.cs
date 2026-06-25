@@ -177,6 +177,11 @@ public class SessionController(
             return Conflict(new { detail = "Session is not open for joining" });
         }
 
+        if (!SessionMapper.IsCreatorDraftComplete(session))
+        {
+            return Conflict(new { detail = "Creator is still preparing the session" });
+        }
+
         var playerName = request.PlayerName.Trim();
         if (playerName == session.RebelPlayerName || playerName == session.ImperialPlayerName)
         {
@@ -276,6 +281,8 @@ public class SessionController(
         session.Status = SessionStatus.InProgress;
         session.CurrentTurn = Faction.Rebel;
         session.HitsThisTurn = 0;
+
+        await actionLogger.LogBattleStartAsync(session);
 
         await db.SaveChangesAsync();
         await broadcast.BroadcastUpdatedAsync(session);

@@ -22,7 +22,7 @@
                     <td>{{ getStatusText(session.status) }}</td>
                     <td class="session-actions">
                         <button
-                            v-if="isParticipant(session)"
+                            v-if="isParticipant(session) && session.status !== SessionStatusEnum.Finished"
                             class="generic-button"
                             title="Return to your session"
                             @click="handleOpen(session)"
@@ -32,10 +32,10 @@
                         <button
                             v-else-if="session.status === SessionStatusEnum.Finished"
                             class="generic-button"
-                            title="View session result"
-                            @click="handleView(session)"
+                            title="Replay finished match"
+                            @click="handleReplay(session)"
                         >
-                            View
+                            Replay
                         </button>
                         <button
                             v-else-if="session.canJoin"
@@ -103,7 +103,7 @@ const handleOpen = async (session: Session) => {
     router.push(`/session/${session.id}`);
 };
 
-const handleView = async (session: Session) => {
+const handleReplay = async (session: Session) => {
     const name = userStore.currentUser?.name;
     await sessionStore.loadSession(session.id, name);
     router.push(`/session/${session.id}`);

@@ -16,7 +16,10 @@
     </div>
     <div class="main-layout-footer">
         <div class="main-layout-footer__start">
-            <p v-if="isDrafting" class="draft-hint">
+            <p v-if="showReplayHint" class="footer-hint">
+                Press <kbd>Space</kbd> to go to the next action
+            </p>
+            <p v-else-if="showDraftHint" class="footer-hint">
                 <template v-if="showRotateHint">
                     Press <kbd>R</kbd> / <kbd>К</kbd> to rotate selected unit ({{ selectedRotation }}°)
                 </template>
@@ -76,6 +79,17 @@ const draftStore = useDraftStore();
 const { isLoading } = storeToRefs(appStore);
 const { showRotateHint, selectedRotation, isDrafting } = storeToRefs(draftStore);
 const isTurnHistoryOpen = ref(false);
+
+const showReplayHint = computed(() => sessionStore.currentSession?.status === 'finished');
+
+const showDraftHint = computed(() => {
+    if (showReplayHint.value) return false;
+    const session = sessionStore.currentSession;
+    if (session?.status === 'in_progress' || session?.status === 'finished') {
+        return false;
+    }
+    return isDrafting.value;
+});
 
 const showTurnHistoryButton = computed(() => {
     const session = sessionStore.currentSession;
@@ -146,7 +160,7 @@ const showTurnHistoryButton = computed(() => {
     }
 }
 
-.draft-hint {
+.footer-hint {
     font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.85);
 

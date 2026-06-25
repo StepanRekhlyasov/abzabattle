@@ -110,5 +110,13 @@ export const useBattleMap = () => {
         return battleMap.sectors.some(row => row.some(sector => sector.entity.id === entityId && !sector.destroyed));
     };
 
-    return { generateBattleMap, randomlyDeployEntities, getPlacementPreview, placeEntity, prepareBattleMapForBattle, isEntityAlive };
+    const revealAllSectors = (battleMap: BattleMap): BattleMap => {
+        const revealed = JSON.parse(JSON.stringify(battleMap)) as BattleMap;
+        revealed.sectors.forEach(row => row.forEach(sector => {
+            sector.hidden = false;
+        }));
+        return revealed;
+    };
+
+    return { generateBattleMap, randomlyDeployEntities, getPlacementPreview, placeEntity, prepareBattleMapForBattle, isEntityAlive, revealAllSectors };
 };

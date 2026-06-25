@@ -27,6 +27,7 @@ public static class SessionMapper
         var isFinished = session.Status == SessionStatus.Finished;
 
         var canJoin = session.Status == SessionStatus.Pending &&
+                      IsCreatorDraftComplete(session) &&
                       (!rebelOccupied || !imperialOccupied) &&
                       !viewerIsParticipant;
 
@@ -87,6 +88,11 @@ public static class SessionMapper
         if (session.Status == SessionStatus.InProgress)
         {
             return "Battle is already in progress";
+        }
+
+        if (session.Status == SessionStatus.Pending && !IsCreatorDraftComplete(session))
+        {
+            return "Creator is still preparing the session";
         }
 
         if (session.Status == SessionStatus.Pending && rebelOccupied && imperialOccupied)
@@ -192,5 +198,19 @@ public static class SessionMapper
         }
 
         sectorObject["hidden"] = false;
+    }
+
+    public static bool IsCreatorDraftComplete(GameSession session)
+    {
+        var creatorMapJson = session.CreatorPlayerName == session.RebelPlayerName
+            ? session.RebelBattleMapJson
+            : session.ImperialBattleMapJson;
+
+        if (string.IsNullOrWhiteSpace(creatorMapJson))
+        {
+            return false;
+        }
+
+        return BattleMapValidator.HasRemainingUnits(creatorMapJson);
     }
 }

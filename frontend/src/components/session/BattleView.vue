@@ -1,6 +1,25 @@
 <template>
     <div class="battle-view">
-        <h2 v-if="!finished" class="turn-title">{{ turnLabel }}</h2>
+        <div v-if="replayMode" class="turn-header">
+            <button
+                type="button"
+                class="generic-button turn-nav-button"
+                :disabled="!canGoPrevious"
+                @click="emit('previous-action')"
+            >
+                Previous Action
+            </button>
+            <h2 class="turn-title">{{ replayTurnLabel }}</h2>
+            <button
+                type="button"
+                class="generic-button turn-nav-button"
+                :disabled="!canGoNext"
+                @click="emit('next-action')"
+            >
+                Next Action
+            </button>
+        </div>
+        <h2 v-else-if="!finished" class="turn-title">{{ turnLabel }}</h2>
         <div class="battle-view-maps">
             <template v-if="isSpectatorView">
                 <div
@@ -8,14 +27,14 @@
                     class="battle-view-panel battle-view-panel--readonly"
                 >
                     <h3 class="battle-view-title">{{ rebelMapTitle }}</h3>
-                    <battle-map :battle-map-data="rebelBattleMap" />
+                    <battle-map-component :battle-map-data="rebelBattleMap" />
                 </div>
                 <div
                     v-if="imperialBattleMap"
                     class="battle-view-panel battle-view-panel--readonly"
                 >
                     <h3 class="battle-view-title">{{ imperialMapTitle }}</h3>
-                    <battle-map :battle-map-data="imperialBattleMap" />
+                    <battle-map-component :battle-map-data="imperialBattleMap" />
                 </div>
             </template>
             <template v-else>
@@ -23,12 +42,12 @@
                 class="battle-view-panel"
                 :class="{
                     'battle-view-panel--inactive': !finished && isOwnMapInactive,
-                    'battle-view-panel--readonly': finished,
+                    'battle-view-panel--readonly': finished || replayMode,
                 }"
                 v-if="myBattleMap"
             >
                 <h3 class="battle-view-title">Your map</h3>
-                <battle-map
+                <battle-map-component
                     :battle-map-data="myBattleMap"
                     :preview-cells="ownMapPreviewCellKeys"
                     :preview-valid="ownMapPreviewIsValid"
@@ -41,12 +60,12 @@
                 class="battle-view-panel"
                 :class="{
                     'battle-view-panel--inactive': !finished && isOpponentMapInactive,
-                    'battle-view-panel--readonly': finished,
+                    'battle-view-panel--readonly': finished || replayMode,
                 }"
                 v-if="opponentBattleMap"
             >
                 <h3 class="battle-view-title">Opponent map</h3>
-                <battle-map
+                <battle-map-component
                     :battle-map-data="opponentBattleMap"
                     @sector-click="handleOpponentSectorClick"
                 />
@@ -69,7 +88,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import BattleMap from '@/components/widgets/battle-map/BattleMap.vue';
+import BattleMapComponent from '@/components/widgets/battle-map/BattleMap.vue';
 import Ability from '@/components/widgets/Ability.vue';
 import { AbilityKind } from '@/data/unitAbilities';
 import { useBattleMap } from '@/composables/useBattleMap';
@@ -77,6 +96,7 @@ import { useSessionStore } from '@/stores/session.store';
 import { useAppStore } from '@/stores/app.store';
 import { useUserStore } from '@/stores/user.store';
 import { EntityRotation, EntityType } from '@/types/entity';
+import type { BattleMap } from '@/types/map';
 import type { BattleSector } from '@/types/map';
 import { Faction } from '@/types/session';
 import { getAbilitiesFromBattleMap } from '@/utils/mapAbilities';
@@ -85,14 +105,31 @@ import { storeToRefs } from 'pinia';
 
 const props = withDefaults(defineProps<{
     finished?: boolean;
+    replayMode?: boolean;
+    replayTurnLabel?: string;
+    canGoPrevious?: boolean;
+    canGoNext?: boolean;
+    replayRebelBattleMap?: BattleMap | null;
+    replayImperialBattleMap?: BattleMap | null;
 }>(), {
     finished: false,
+    replayMode: false,
+    replayTurnLabel: '',
+    canGoPrevious: false,
+    canGoNext: false,
+    replayRebelBattleMap: null,
+    replayImperialBattleMap: null,
 });
+
+const emit = defineEmits<{
+    (e: 'previous-action'): void;
+    (e: 'next-action'): void;
+}>();
 
 const sessionStore = useSessionStore();
 const appStore = useAppStore();
 const userStore = useUserStore();
-const { getPlacementPreview } = useBattleMap();
+const { getPlacementPreview, revealAllSectors } = useBattleMap();
 const { currentSession } = storeToRefs(sessionStore);
 const { isLoading } = storeToRefs(appStore);
 const selectedAbilityId = ref<string | null>(null);
@@ -112,10 +149,31 @@ const myFaction = computed(() => {
 
 const isSpectator = computed(() => myFaction.value === null);
 
-const isSpectatorView = computed(() => props.finished && isSpectator.value);
+const isSpectatorView = computed(() => {
+    if (props.replayMode) {
+        return isSpectator.value;
+    }
+    return props.finished && isSpectator.value;
+});
 
-const rebelBattleMap = computed(() => currentSession.value?.rebel.battleMap ?? null);
-const imperialBattleMap = computed(() => currentSession.value?.imperial.battleMap ?? null);
+const withReplayReveal = (map: BattleMap | null) => {
+    if (!map) return null;
+    return props.replayMode ? revealAllSectors(map) : map;
+};
+
+const rebelBattleMap = computed(() => {
+    if (props.replayMode) {
+        return withReplayReveal(props.replayRebelBattleMap);
+    }
+    return currentSession.value?.rebel.battleMap ?? null;
+});
+
+const imperialBattleMap = computed(() => {
+    if (props.replayMode) {
+        return withReplayReveal(props.replayImperialBattleMap);
+    }
+    return currentSession.value?.imperial.battleMap ?? null;
+});
 
 const rebelMapTitle = computed(() => {
     const playerName = currentSession.value?.rebel.player?.name;
@@ -146,6 +204,13 @@ const turnLabel = computed(() => {
 });
 
 const myBattleMap = computed(() => {
+    if (props.replayMode) {
+        if (!myFaction.value) return null;
+        const map = myFaction.value === Faction.Rebel
+            ? props.replayRebelBattleMap
+            : props.replayImperialBattleMap;
+        return withReplayReveal(map);
+    }
     if (!currentSession.value || !myFaction.value) return null;
     return myFaction.value === Faction.Rebel
         ? currentSession.value.rebel.battleMap
@@ -153,6 +218,13 @@ const myBattleMap = computed(() => {
 });
 
 const opponentBattleMap = computed(() => {
+    if (props.replayMode) {
+        if (!myFaction.value) return null;
+        const map = myFaction.value === Faction.Rebel
+            ? props.replayImperialBattleMap
+            : props.replayRebelBattleMap;
+        return withReplayReveal(map);
+    }
     if (!currentSession.value || !myFaction.value) return null;
     return myFaction.value === Faction.Rebel
         ? currentSession.value.imperial.battleMap
@@ -329,9 +401,27 @@ const handleOpponentSectorClick = async ({
 
 .turn-title {
     color: #ffffff;
-    margin: 0;
+    margin: 0 20px;
     font-size: 24px;
     font-weight: 600;
+    text-align: center;
+}
+
+.turn-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    width: 100%;
+}
+
+.turn-nav-button {
+    min-width: 150px;
+
+    &:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
 }
 
 .battle-view-maps {
