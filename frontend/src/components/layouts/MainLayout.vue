@@ -16,6 +16,14 @@
     </div>
     <div class="main-layout-footer">
         <div class="main-layout-footer__start">
+            <p v-if="isDrafting" class="draft-hint">
+                <template v-if="showRotateHint">
+                    Press <kbd>R</kbd> / <kbd>К</kbd> to rotate selected unit ({{ selectedRotation }}°)
+                </template>
+                <template v-else>
+                    Select a unit to deploy. Press <kbd>R</kbd> / <kbd>К</kbd> to rotate it.
+                </template>
+            </p>
         </div>
         <div class="main-layout-footer__center">
             <button
@@ -54,6 +62,7 @@ import { useUserStore } from '@/stores/user.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { useSessionStore } from '@/stores/session.store';
 import { useAppStore } from '@/stores/app.store';
+import { useDraftStore } from '@/stores/draft.store';
 import TurnHistoryModal from '@/components/session/TurnHistoryModal.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faHouse, faRightFromBracket } from '@fortawesome/free-solid-svg-icons'
@@ -63,7 +72,9 @@ const userStore = useUserStore();
 const authStore = useAuthStore();
 const sessionStore = useSessionStore();
 const appStore = useAppStore();
+const draftStore = useDraftStore();
 const { isLoading } = storeToRefs(appStore);
+const { showRotateHint, selectedRotation, isDrafting } = storeToRefs(draftStore);
 const isTurnHistoryOpen = ref(false);
 
 const showTurnHistoryButton = computed(() => {
@@ -131,6 +142,24 @@ const showTurnHistoryButton = computed(() => {
 
     p {
         margin: 0;
+        text-align: center;
+    }
+}
+
+.draft-hint {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.85);
+
+    kbd {
+        display: inline-block;
+        min-width: 1.25rem;
+        padding: 2px 6px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        font-family: inherit;
+        font-size: 0.85rem;
+        line-height: 1.2;
         text-align: center;
     }
 }

@@ -67,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import BattleMap from '@/components/widgets/battle-map/BattleMap.vue';
 import DeployRoster from '@/components/widgets/roster/DeployRoster.vue';
 import { useBattleMap } from '@/composables/useBattleMap';
@@ -77,6 +77,7 @@ import { EntityRotation, EntityType, type Entity } from '@/types/entity';
 import type { Faction } from '@/types/session';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/user.store';
+import { isRotateKey } from '@/utils/rotateKey';
 
 const props = withDefaults(defineProps<{
     readOnlySettings?: boolean;
@@ -176,6 +177,19 @@ const handleSectorClick = ({ x, y }: { x: number; y: number }) => {
     hoverAnchor.value = null;
 };
 
+const isEditableTarget = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return false;
+    const tag = target.tagName;
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
+};
+
+const handleKeyDown = (event: KeyboardEvent) => {
+    if (!isRotateKey(event.key) || isEditableTarget(event.target)) return;
+    if (!buildSelectedEntity()) return;
+    event.preventDefault();
+    draftStore.rotateSelectedEntity();
+};
+
 const applySettings = () => {
     if (props.fixedPtsLimit != null) {
         ptsLimit.value = props.fixedPtsLimit;
@@ -189,10 +203,17 @@ const applySettings = () => {
 };
 
 onMounted(() => {
+    draftStore.setDrafting(true);
+    window.addEventListener('keydown', handleKeyDown);
     applySettings();
     if (props.autoGenerate || props.readOnlySettings) {
         resetBattleMap();
     }
+});
+
+onUnmounted(() => {
+    draftStore.setDrafting(false);
+    window.removeEventListener('keydown', handleKeyDown);
 });
 
 watch(() => props.lockedFaction, (faction) => {

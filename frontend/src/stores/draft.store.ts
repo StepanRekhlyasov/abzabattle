@@ -1,5 +1,5 @@
 import type { Entity } from '@/types/entity';
-import { EntityRotation } from '@/types/entity';
+import { EntityRotation, EntityType } from '@/types/entity';
 import type { BattleMap } from '@/types/map';
 import type { Faction } from '@/types/session';
 import { defineStore } from 'pinia';
@@ -13,10 +13,15 @@ export const useDraftStore = defineStore('draft', {
         ptsLimit: 100,
         selectedFaction: 'imperial' as Faction | null,
         battleMap: null as BattleMap | null,
+        isDrafting: false,
     }),
     getters: {
         ptsRemaining: state => state.ptsLimit - state.ptsSpent,
         isPtsOverLimit: state => state.ptsLimit - state.ptsSpent < 0,
+        showRotateHint: state =>
+            state.isDrafting &&
+            !!state.selectedEntity &&
+            state.selectedEntity.type !== EntityType.Empty,
     },
     actions: {
         selectEntity(entity: Entity | null) {
@@ -33,6 +38,9 @@ export const useDraftStore = defineStore('draft', {
         },
         addPtsSpent(cost: number) {
             this.ptsSpent += cost;
+        },
+        setDrafting(isDrafting: boolean) {
+            this.isDrafting = isDrafting;
         },
     },
     persist: true,
