@@ -11,6 +11,7 @@ export enum EntityType {
     Letter = 'letter',
     Empty = 'empty',
     StarDestroyer = 'star-destroyer',
+    DeathStar = 'death-star',
     MonCalamari = 'mon-calamari',
     TieFighter = 'tie-fighter',
     GozantiClassCruiser = 'gozanti-class-cruiser',
@@ -25,6 +26,7 @@ interface BaseEntity<T extends EntityType> {
     id?: string;
     content?: string;
     rotation?: EntityRotation;
+    reactor?: boolean;
 }
 
 export interface LetterEntity extends BaseEntity<EntityType.Letter> {}
@@ -32,6 +34,7 @@ export interface EmptyEntity extends BaseEntity<EntityType.Empty> {}
 
 export type RotatableEntity<T extends EntityType> = BaseEntity<T> & { rotation: EntityRotation };
 export type StarDestroyerEntity = RotatableEntity<EntityType.StarDestroyer>;
+export type DeathStarEntity = RotatableEntity<EntityType.DeathStar>;
 export type MonCalamariEntity = RotatableEntity<EntityType.MonCalamari>;
 export type TieFighterEntity = RotatableEntity<EntityType.TieFighter>;
 export type GozantiClassCruiserEntity = RotatableEntity<EntityType.GozantiClassCruiser>;
@@ -46,6 +49,7 @@ type EntityTypeMap = {
     [EntityType.Letter]: LetterEntity;
     [EntityType.Empty]: EmptyEntity;
     [EntityType.StarDestroyer]: StarDestroyerEntity;
+    [EntityType.DeathStar]: DeathStarEntity;
     [EntityType.MonCalamari]: MonCalamariEntity;
     [EntityType.TieFighter]: TieFighterEntity;
     [EntityType.GozantiClassCruiser]: GozantiClassCruiserEntity;

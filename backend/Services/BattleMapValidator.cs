@@ -56,6 +56,7 @@ public static class BattleMapValidator
             ["x-wing"] = 15,
             ["u-wing"] = 20,
             ["gozanti-class-cruiser"] = 25,
+            ["death-star"] = 100,
         };
 
         var spent = 0;

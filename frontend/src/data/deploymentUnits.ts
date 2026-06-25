@@ -1,4 +1,5 @@
 import sdImage from '@/assets/images/sd.png';
+import dsImage from '@/assets/images/ds.png';
 import mcImage from '@/assets/images/mc.png';
 import tfImage from '@/assets/images/tf.png';
 import gzImage from '@/assets/images/gz.png';
@@ -17,6 +18,7 @@ export type DeploymentUnitAsset = {
 
 export const DEPLOYMENT_UNIT_ASSETS: DeploymentUnitAsset[] = [
     { type: EntityType.StarDestroyer, name: 'Star Destroyer', image: sdImage, factions: [Faction.Imperial] },
+    { type: EntityType.DeathStar, name: 'Death Star', image: dsImage, factions: [Faction.Imperial] },
     { type: EntityType.TieFighter, name: 'Tie-Fighter', image: tfImage, factions: [Faction.Imperial] },
     { type: EntityType.GozantiClassCruiser, name: 'Gozanti Class Cruiser', image: gzImage, factions: [Faction.Imperial] },
     { type: EntityType.MonCalamari, name: 'Mon Calamari', image: mcImage, factions: [Faction.Rebel] },

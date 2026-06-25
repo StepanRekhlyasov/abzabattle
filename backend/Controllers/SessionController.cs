@@ -566,6 +566,47 @@ public class SessionController(
 
                 break;
             }
+            case "single-reactor-ignition":
+            {
+                var targetBefore = BattleMapReader.TryGetSectorTarget(opponentMapJson, request.X, request.Y);
+
+                if (!BattleMapMutator.TrySingleReactorIgnitionStrike(
+                        opponentMapJson,
+                        request.X,
+                        request.Y,
+                        out var updatedMapJson,
+                        out var outcome))
+                {
+                    return BadRequest(new { detail = "Sector cannot be attacked" });
+                }
+
+                if (isRebel)
+                {
+                    session.ImperialBattleMapJson = updatedMapJson;
+                }
+                else
+                {
+                    session.RebelBattleMapJson = updatedMapJson;
+                }
+
+                await actionLogger.LogAbilityAsync(
+                    session,
+                    playerName,
+                    request.AbilityKind,
+                    request.X,
+                    request.Y,
+                    targetBefore,
+                    outcome,
+                    updatedMapJson,
+                    isRebel);
+
+                if (outcome == StrikeOutcome.MineHit)
+                {
+                    BattleTurnRules.EndTurn(session);
+                }
+
+                break;
+            }
             case "place-shield":
             {
                 var targetBefore = BattleMapReader.TryGetSectorTarget(ownMapJson, request.X, request.Y);

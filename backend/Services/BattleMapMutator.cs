@@ -66,18 +66,32 @@ public static class BattleMapMutator
             return false;
         }
 
+        var entityType = sector["entity"]?["type"]?.GetValue<string>();
         var destroyed = sector["destroyed"]?.GetValue<bool>() ?? false;
-        if (destroyed)
+
+        if (destroyed && !IsDeathStarSector(sector))
         {
             return false;
         }
 
-        if (TryHandleSpaceMineHit(sector, root, out updatedJson, out outcome))
+        if (!destroyed && TryHandleSpaceMineHit(sector, root, out updatedJson, out outcome))
         {
             return true;
         }
 
-        var entityType = sector["entity"]?["type"]?.GetValue<string>();
+        if (TryReactorCriticalStrike(sectors, sector, root, out updatedJson, out outcome))
+        {
+            return true;
+        }
+
+        if (IsDeathStarSector(sector) && destroyed)
+        {
+            sector["hidden"] = false;
+            outcome = StrikeOutcome.Miss;
+            updatedJson = root.ToJsonString(JsonOptions);
+            return true;
+        }
+
         if (entityType != "tie-fighter")
         {
             sector["hidden"] = false;
@@ -115,18 +129,32 @@ public static class BattleMapMutator
             return false;
         }
 
+        var entityType = sector["entity"]?["type"]?.GetValue<string>();
         var destroyed = sector["destroyed"]?.GetValue<bool>() ?? false;
-        if (destroyed)
+
+        if (destroyed && !IsDeathStarSector(sector))
         {
             return false;
         }
 
-        if (TryHandleSpaceMineHit(sector, root, out updatedJson, out outcome))
+        if (!destroyed && TryHandleSpaceMineHit(sector, root, out updatedJson, out outcome))
         {
             return true;
         }
 
-        var entityType = sector["entity"]?["type"]?.GetValue<string>();
+        if (TryReactorCriticalStrike(sectors, sector, root, out updatedJson, out outcome))
+        {
+            return true;
+        }
+
+        if (IsDeathStarSector(sector) && destroyed)
+        {
+            sector["hidden"] = false;
+            outcome = StrikeOutcome.Miss;
+            updatedJson = root.ToJsonString(JsonOptions);
+            return true;
+        }
+
         if (entityType == "tie-fighter")
         {
             sector["hidden"] = false;
@@ -136,6 +164,109 @@ public static class BattleMapMutator
         }
 
         return ApplySectorHit(sectors, sector, out updatedJson, out outcome, root);
+    }
+
+    public static bool TrySingleReactorIgnitionStrike(
+        string battleMapJson,
+        int x,
+        int y,
+        out string updatedJson,
+        out StrikeOutcome outcome)
+    {
+        updatedJson = battleMapJson;
+        outcome = StrikeOutcome.Miss;
+
+        var root = JsonNode.Parse(battleMapJson);
+        if (root?["sectors"] is not JsonArray sectors)
+        {
+            return false;
+        }
+
+        if (!TryGetSector(sectors, x, y, out var targetSector))
+        {
+            return false;
+        }
+
+        if (targetSector["destroyed"]?.GetValue<bool>() ?? false)
+        {
+            return false;
+        }
+
+        var blastPositions = GetBlastPositions(sectors, x, y);
+        var affectedEntityIds = new HashSet<string>();
+        var hitAnyUnit = false;
+        var mineHit = false;
+
+        foreach (var (blastX, blastY) in blastPositions)
+        {
+            if (!TryGetSector(sectors, blastX, blastY, out var sector))
+            {
+                continue;
+            }
+
+            if (sector["destroyed"]?.GetValue<bool>() ?? false)
+            {
+                continue;
+            }
+
+            var entityType = sector["entity"]?["type"]?.GetValue<string>();
+            var entityId = sector["entity"]?["id"]?.GetValue<string>();
+
+            sector["hidden"] = false;
+
+            if (entityType == "space-mine")
+            {
+                sector["destroyed"] = true;
+                mineHit = true;
+                continue;
+            }
+
+            if (entityType is null or "empty")
+            {
+                sector["destroyed"] = true;
+                continue;
+            }
+
+            var shielded = sector["shielded"]?.GetValue<bool>() ?? false;
+            if (shielded)
+            {
+                sector["shielded"] = false;
+                hitAnyUnit = true;
+                if (entityId is not null)
+                {
+                    affectedEntityIds.Add(entityId);
+                }
+
+                continue;
+            }
+
+            sector["destroyed"] = true;
+            hitAnyUnit = true;
+            if (entityId is not null)
+            {
+                affectedEntityIds.Add(entityId);
+            }
+        }
+
+        foreach (var entityId in affectedEntityIds)
+        {
+            if (!HasIntactEntitySectors(sectors, entityId))
+            {
+                MarkAdjacentSectorsDestroyed(sectors, entityId);
+            }
+        }
+
+        if (mineHit)
+        {
+            outcome = StrikeOutcome.MineHit;
+        }
+        else if (hitAnyUnit)
+        {
+            outcome = StrikeOutcome.Hit;
+        }
+
+        updatedJson = root.ToJsonString(JsonOptions);
+        return true;
     }
 
     public static bool TryDeployTieFighter(string battleMapJson, int x, int y, out string updatedJson)
@@ -213,6 +344,75 @@ public static class BattleMapMutator
 
         updatedJson = root.ToJsonString(JsonOptions);
         return true;
+    }
+
+    private static bool IsDeathStarSector(JsonObject sector) =>
+        sector["entity"]?["type"]?.GetValue<string>() == "death-star";
+
+    private static bool IsReactorSector(JsonObject sector) =>
+        sector["entity"]?["reactor"]?.GetValue<bool>() ?? false;
+
+    private static bool TryReactorCriticalStrike(
+        JsonArray sectors,
+        JsonObject sector,
+        JsonNode root,
+        out string updatedJson,
+        out StrikeOutcome outcome)
+    {
+        updatedJson = root.ToJsonString(JsonOptions);
+        outcome = StrikeOutcome.Miss;
+
+        if (!IsDeathStarSector(sector) || !IsReactorSector(sector))
+        {
+            return false;
+        }
+
+        sector["hidden"] = false;
+
+        if (Random.Shared.Next(2) != 0)
+        {
+            return false;
+        }
+
+        var entityId = sector["entity"]?["id"]?.GetValue<string>();
+        if (entityId is null)
+        {
+            return false;
+        }
+
+        DestroyEntireEntity(sectors, entityId);
+        outcome = StrikeOutcome.Hit;
+        updatedJson = root.ToJsonString(JsonOptions);
+        return true;
+    }
+
+    private static void DestroyEntireEntity(JsonArray sectors, string entityId)
+    {
+        for (var y = 0; y < sectors.Count; y++)
+        {
+            if (sectors[y] is not JsonArray row)
+            {
+                continue;
+            }
+
+            for (var x = 0; x < row.Count; x++)
+            {
+                if (row[x] is not JsonObject sectorObject)
+                {
+                    continue;
+                }
+
+                if (sectorObject["entity"]?["id"]?.GetValue<string>() != entityId)
+                {
+                    continue;
+                }
+
+                sectorObject["hidden"] = false;
+                sectorObject["destroyed"] = true;
+            }
+        }
+
+        MarkAdjacentSectorsDestroyed(sectors, entityId);
     }
 
     private static bool TryHandleSpaceMineHit(
@@ -434,6 +634,26 @@ public static class BattleMapMutator
 
         updatedJson = root.ToJsonString(JsonOptions);
         return true;
+    }
+
+    private static List<(int X, int Y)> GetBlastPositions(JsonArray sectors, int centerX, int centerY)
+    {
+        var positions = new List<(int X, int Y)>();
+
+        for (var dy = -1; dy <= 1; dy++)
+        {
+            for (var dx = -1; dx <= 1; dx++)
+            {
+                var x = centerX + dx;
+                var y = centerY + dy;
+                if (TryGetSector(sectors, x, y, out _))
+                {
+                    positions.Add((x, y));
+                }
+            }
+        }
+
+        return positions;
     }
 
     private static bool TryGetSector(JsonArray sectors, int x, int y, out JsonObject sector)

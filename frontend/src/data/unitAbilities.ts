@@ -4,6 +4,7 @@ import { getDeploymentUnitAsset } from '@/data/deploymentUnits';
 export enum AbilityKind {
     DeployTieFighter = 'deploy-tie-fighter',
     PlaceSpaceMine = 'place-space-mine',
+    SingleReactorIgnition = 'single-reactor-ignition',
     OpponentStrike = 'opponent-strike',
     PlaceShield = 'place-shield',
     AirborneSuperiority = 'airborne-superiority',
@@ -24,7 +25,21 @@ export type UnitAbility = AbilityDefinition & {
     image: string;
 };
 
+export type PassiveAbility = {
+    id: string;
+    name: string;
+    description: string;
+    image: string;
+};
+
 export const TIE_FIGHTERS_PER_ABILITY = 3;
+
+const PASSIVE_ABILITY_DEFINITIONS: Partial<Record<EntityType, Omit<PassiveAbility, 'id' | 'image'>>> = {
+    [EntityType.DeathStar]: {
+        name: 'Fatal Flaw',
+        description: 'A fatal design flaw leaves the Death Star vulnerable: a lucky starfighter may destroy the entire station with a single shot to the reactor (the central sector)!',
+    },
+};
 
 const ABILITY_DEFINITIONS: Partial<Record<EntityType, AbilityDefinition>> = {
     [EntityType.StarDestroyer]: {
@@ -38,6 +53,12 @@ const ABILITY_DEFINITIONS: Partial<Record<EntityType, AbilityDefinition>> = {
         description: 'Place a Space Mine on your map. Does not end your turn.',
         kind: AbilityKind.PlaceSpaceMine,
         target: 'own',
+    },
+    [EntityType.DeathStar]: {
+        name: 'Single-reactor Ignition',
+        description: 'Fire at a sector on the opponent map. Destroys the target sector and all adjacent sectors. Does not end your turn.',
+        kind: AbilityKind.SingleReactorIgnition,
+        target: 'opponent',
     },
     [EntityType.TieFighter]: {
         name: 'Swarm Tactics',
@@ -70,6 +91,22 @@ const ABILITY_DEFINITIONS: Partial<Record<EntityType, AbilityDefinition>> = {
         target: 'opponent',
     },
 };
+
+export function getPassiveAbilityDefinition(type: EntityType): Omit<PassiveAbility, 'id' | 'image'> | null {
+    return PASSIVE_ABILITY_DEFINITIONS[type] ?? null;
+}
+
+export function toPassiveAbility(entityId: string, type: EntityType): PassiveAbility | null {
+    const definition = getPassiveAbilityDefinition(type);
+    if (!definition) return null;
+
+    return {
+        id: `${entityId}-passive`,
+        name: definition.name,
+        description: definition.description,
+        image: getDeploymentUnitAsset(type).image,
+    };
+}
 
 export function getAbilityDefinition(type: EntityType): AbilityDefinition | null {
     return ABILITY_DEFINITIONS[type] ?? null;

@@ -257,6 +257,11 @@ public class SessionActionLogger(AppDbContext db)
         if (outcome == StrikeOutcome.Hit)
         {
             var entityName = GetEntityDisplayName(targetBefore?.EntityType);
+            if (isKill && targetBefore?.EntityType == "death-star")
+            {
+                return $"{playerName} uses {abilityName}{coordinates} and hits the reactor - the Death Star is destroyed!";
+            }
+
             if (isKill)
             {
                 return $"{playerName} uses {abilityName}{coordinates} and hit {entityName} - it's a kill!";
@@ -286,6 +291,7 @@ public class SessionActionLogger(AppDbContext db)
     {
         "deploy-tie-fighter" => "Tie Fighter Reinforcement",
         "place-space-mine" => "Space Mines",
+        "single-reactor-ignition" => "Single-reactor Ignition",
         "place-shield" => "Deflector Shield",
         "airborne-superiority" => "Airborne Superiority",
         "bombardment" => "Bombardment",
@@ -302,6 +308,7 @@ public class SessionActionLogger(AppDbContext db)
         "x-wing" => "X-Wing",
         "u-wing" => "U-Wing",
         "gozanti-class-cruiser" => "Gozanti Class Cruiser",
+        "death-star" => "Death Star",
         "space-mine" => "Space Mine",
         "empty" or null => "empty sector",
         _ => entityType,

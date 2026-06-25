@@ -1,7 +1,7 @@
 import type { BattleMap, BattleMapOptions } from '@/types/map';
 import { EntityRotation, EntityType, type Entity, type MapPosition } from '@/types/entity';
 import { getEntityDefinition } from '@/data/entityDefinitions';
-import { getEntityCells } from '@/utils/entityFootprint';
+import { getEntityCells, getFootprint } from '@/utils/entityFootprint';
 
 function shuffle<T>(items: T[]): T[] {
     const result = [...items];
@@ -72,10 +72,22 @@ export const useBattleMap = () => {
     const placeEntity = (entity: Entity, anchor: MapPosition, battleMap: BattleMap, isHidden = false, ignoreAdjacent = false) => {
         if (!canPlaceEntity(entity, anchor, battleMap, ignoreAdjacent)) return false;
         const definition = getEntityDefinition(entity.type);
-        const placedEntity = { ...entity, id: entity.id ?? crypto.randomUUID(), content: entity.content ?? definition.content };
-        getEntityCells(placedEntity.type, anchor, getEntityRotation(placedEntity)).forEach((position) => {
+        const rotation = getEntityRotation(entity);
+        const footprint = getFootprint(entity.type, rotation);
+        const placedEntity = {
+            ...entity,
+            id: entity.id ?? crypto.randomUUID(),
+            content: entity.content ?? definition.content,
+        };
+        getEntityCells(placedEntity.type, anchor, rotation).forEach((position, index) => {
+            const offset = footprint[index];
             const sector = getSector(battleMap, position);
-            sector.entity = { ...placedEntity };
+            sector.entity = {
+                ...placedEntity,
+                ...(entity.type === EntityType.DeathStar
+                    ? { reactor: offset.x === 0 && offset.y === 0 }
+                    : {}),
+            };
             sector.hidden = isHidden;
             sector.destroyed = false;
         });

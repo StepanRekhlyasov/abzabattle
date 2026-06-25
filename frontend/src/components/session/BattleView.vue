@@ -71,7 +71,13 @@
                 />
             </div>
             </template>
-            <div v-if="!finished && myAbilities.length" class="special-abilities">
+            <div v-if="!finished && (myAbilities.length || myPassiveAbilities.length)" class="special-abilities">
+                <ability
+                    v-for="passive in myPassiveAbilities"
+                    :key="passive.id"
+                    :ability="passive"
+                    passive
+                />
                 <ability
                     v-for="ability in myAbilities"
                     :key="ability.entityId"
@@ -99,7 +105,7 @@ import { EntityRotation, EntityType } from '@/types/entity';
 import type { BattleMap } from '@/types/map';
 import type { BattleSector } from '@/types/map';
 import { Faction } from '@/types/session';
-import { getAbilitiesFromBattleMap } from '@/utils/mapAbilities';
+import { getAbilitiesFromBattleMap, getPassiveAbilitiesFromBattleMap } from '@/utils/mapAbilities';
 import { canAttackSector, canPlaceShieldOnSector } from '@/utils/battleSectorRules';
 import { storeToRefs } from 'pinia';
 
@@ -238,6 +244,8 @@ const opponentBattleMap = computed(() => {
 });
 
 const myAbilities = computed(() => getAbilitiesFromBattleMap(myBattleMap.value));
+
+const myPassiveAbilities = computed(() => getPassiveAbilitiesFromBattleMap(myBattleMap.value));
 
 const selectedAbility = computed(() =>
     myAbilities.value.find(ability => ability.entityId === selectedAbilityId.value) ?? null,
@@ -397,8 +405,9 @@ const handleOpponentSectorClick = async ({
         if (ability.target !== 'opponent') return;
         if (ability.kind !== AbilityKind.OpponentStrike
             && ability.kind !== AbilityKind.AirborneSuperiority
-            && ability.kind !== AbilityKind.Bombardment) return;
-        if (!canAttackSector(sector)) return;
+            && ability.kind !== AbilityKind.Bombardment
+            && ability.kind !== AbilityKind.SingleReactorIgnition) return;
+        if (!canAttackSector(sector, ability.kind)) return;
 
         await sessionStore.useAbility(sessionId, playerName, ability.kind, x, y);
         markAbilityUsed(ability.entityId);

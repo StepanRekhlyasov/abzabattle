@@ -1,8 +1,15 @@
 import type { BattleSector } from '@/types/map';
 import { EntityType } from '@/types/entity';
+import { AbilityKind } from '@/data/unitAbilities';
 
-export function canAttackSector(sector: BattleSector): boolean {
-    return !sector.destroyed;
+export function canAttackSector(sector: BattleSector, abilityKind?: AbilityKind): boolean {
+    if (!sector.destroyed) return true;
+
+    if (abilityKind === AbilityKind.AirborneSuperiority || abilityKind === AbilityKind.Bombardment) {
+        return sector.entity.type === EntityType.DeathStar;
+    }
+
+    return false;
 }
 
 export function canPlaceShieldOnSector(

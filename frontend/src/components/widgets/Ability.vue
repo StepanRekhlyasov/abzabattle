@@ -2,9 +2,10 @@
     <div
         class="ability"
         :class="{
-            'ability--disabled': disabled || used,
-            'ability--selected': selected && !used,
-            'ability--used': used,
+            'ability--disabled': !passive && (disabled || used),
+            'ability--selected': !passive && selected && !used,
+            'ability--used': !passive && used,
+            'ability--passive': passive,
         }"
         @click="handleClick"
     >
@@ -19,13 +20,14 @@
 </template>
 
 <script setup lang="ts">
-import type { UnitAbility } from '@/data/unitAbilities';
+import type { PassiveAbility, UnitAbility } from '@/data/unitAbilities';
 
 const props = defineProps<{
-    ability: UnitAbility;
+    ability: UnitAbility | PassiveAbility;
     selected?: boolean;
     used?: boolean;
     disabled?: boolean;
+    passive?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -33,7 +35,8 @@ const emit = defineEmits<{
 }>();
 
 const handleClick = () => {
-    if (props.disabled || props.used) return;
+    if (props.passive || props.disabled || props.used) return;
+    if (!('entityId' in props.ability)) return;
     emit('select', props.ability.entityId);
 };
 </script>
@@ -59,6 +62,10 @@ const handleClick = () => {
         cursor: not-allowed;
         opacity: 1;
     }
+
+    &--passive {
+        cursor: default;
+    }
 }
 
 .ability-sector {
@@ -78,6 +85,10 @@ const handleClick = () => {
 
     .ability--used & {
         background-color: var(--color-sector-destroyed);
+    }
+
+    .ability--passive & {
+        background-color: var(--color-passive-sector);
     }
 }
 
