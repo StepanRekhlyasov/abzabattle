@@ -42,6 +42,7 @@
             <p>Total games: {{ userStore.currentUser?.totalGames ?? 0 }}</p>
         </div>
         <div class="main-layout-footer__end">
+            Abzabattle {{ version }}
             <v-progress-circular
                 v-if="isLoading"
                 indeterminate
@@ -76,7 +77,7 @@ const authStore = useAuthStore();
 const sessionStore = useSessionStore();
 const appStore = useAppStore();
 const draftStore = useDraftStore();
-const { isLoading } = storeToRefs(appStore);
+const { isLoading, version } = storeToRefs(appStore);
 const { showRotateHint, selectedRotation, isDrafting } = storeToRefs(draftStore);
 const isTurnHistoryOpen = ref(false);
 
