@@ -1,10 +1,12 @@
+using backend.Data;
 using backend.Dtos;
 using backend.Services;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Hubs;
 
-public class PresenceHub(PresenceService presence) : Hub
+public class PresenceHub(PresenceService presence, AppDbContext db) : Hub
 {
     public const string Channel = "presence";
 
@@ -23,10 +25,7 @@ public class PresenceHub(PresenceService presence) : Hub
 
         await Groups.AddToGroupAsync(Context.ConnectionId, Channel);
 
-        var snapshot = presence.GetOnlineUsers()
-            .Select(userName => new UserResponse { Name = userName })
-            .ToList();
-
+        var snapshot = await BuildUserSnapshotAsync();
         await Clients.Caller.SendAsync("PresenceSnapshot", snapshot);
 
         if (becameOnline)
@@ -55,5 +54,18 @@ public class PresenceHub(PresenceService presence) : Hub
         }
 
         await base.OnDisconnectedAsync(exception);
+    }
+
+    private async Task<List<UserResponse>> BuildUserSnapshotAsync()
+    {
+        var onlineUsers = new HashSet<string>(presence.GetOnlineUsers(), StringComparer.Ordinal);
+        var users = await db.Users
+            .AsNoTracking()
+            .OrderBy(u => u.Name)
+            .ToListAsync();
+
+        return users
+            .Select(user => UserMapper.ToResponse(user, onlineUsers.Contains(user.Name)))
+            .ToList();
     }
 }

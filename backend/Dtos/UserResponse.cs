@@ -6,4 +6,5 @@ public class UserResponse
     public int Wins { get; set; }
     public int Loses { get; set; }
     public int TotalGames { get; set; }
+    public string Status { get; set; } = "offline";
 }

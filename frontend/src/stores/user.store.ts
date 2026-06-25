@@ -6,8 +6,7 @@ import api from "@/services/api";
 export const useUserStore = defineStore('user', {
     state: () => ({
         currentUser: null as Player | null,
-        onlineUsers: [] as Player[],
-
+        users: [] as Player[],
     }),
 
     actions: {
@@ -15,27 +14,48 @@ export const useUserStore = defineStore('user', {
             const response = await api.get<Player>(`/user`, { params: { name } });
             if (response.status === 200) {
                 this.currentUser = response.data;
+                this.upsertUser(response.data);
             }
         },
         setUser(user: Player) {
             this.currentUser = user;
+            this.upsertUser(user);
         },
-        async getOnlineUsers() {
-            const response = await api.get<Player[]>(`/users/online`);
-            this.onlineUsers = response.data;
+        async getUsers() {
+            const response = await api.get<Player[]>(`/users`);
+            this.users = response.data;
             return response.data;
         },
-        setOnlineUsers(users: Player[]) {
-            this.onlineUsers = users;
+        setUsers(users: Player[]) {
+            this.users = users;
         },
-        updatePresence(update: PresenceUpdate) {
-            if (update.status === 'online') {
-                if (!this.onlineUsers.some(user => user.name === update.name)) {
-                    this.onlineUsers.push({ name: update.name });
-                }
+        upsertUser(user: Player) {
+            const index = this.users.findIndex(item => item.name === user.name);
+            if (index === -1) {
+                this.users.push(user);
                 return;
             }
-            this.onlineUsers = this.onlineUsers.filter(user => user.name !== update.name);
+
+            this.users[index] = {
+                ...this.users[index],
+                ...user,
+                status: user.status ?? this.users[index].status,
+            };
+        },
+        updatePresence(update: PresenceUpdate) {
+            const user = this.users.find(item => item.name === update.name);
+            if (user) {
+                user.status = update.status;
+                return;
+            }
+
+            this.users.push({
+                name: update.name,
+                wins: 0,
+                loses: 0,
+                totalGames: 0,
+                status: update.status,
+            });
         },
     },
     persist: {

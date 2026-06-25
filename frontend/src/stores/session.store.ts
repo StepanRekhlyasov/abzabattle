@@ -29,6 +29,7 @@ function syncCurrentUserStats(session: Session) {
         wins: player.wins,
         loses: player.loses,
         totalGames: player.totalGames,
+        status: currentUser.status,
     });
 }
 
@@ -82,6 +83,9 @@ export const useSessionStore = defineStore('session', {
             this.currentSession = session;
             this.applySessionUpdate(session);
             syncCurrentUserStats(session);
+            if (session.status === 'finished') {
+                void useUserStore().getUsers();
+            }
         },
         async loadSession(id: string, playerName?: string) {
             const session = await sessionApi.fetchSession(id, playerName);

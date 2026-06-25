@@ -10,10 +10,29 @@ namespace backend.Controllers;
 [Route("api")]
 public class UserController(AppDbContext db, PresenceService presence) : ControllerBase
 {
-    [HttpGet("users/online")]
-    public ActionResult<IEnumerable<UserResponse>> GetOnlineUsers()
+    [HttpGet("users")]
+    public async Task<ActionResult<IEnumerable<UserResponse>>> GetUsers()
     {
-        return Ok(presence.GetOnlineUsers().Select(name => new UserResponse { Name = name }));
+        var onlineUsers = new HashSet<string>(presence.GetOnlineUsers(), StringComparer.Ordinal);
+        var users = await db.Users
+            .AsNoTracking()
+            .OrderBy(u => u.Name)
+            .ToListAsync();
+
+        return Ok(users.Select(user => UserMapper.ToResponse(user, onlineUsers.Contains(user.Name))));
+    }
+
+    [HttpGet("users/online")]
+    public async Task<ActionResult<IEnumerable<UserResponse>>> GetOnlineUsers()
+    {
+        var onlineNames = new HashSet<string>(presence.GetOnlineUsers(), StringComparer.Ordinal);
+        var users = await db.Users
+            .AsNoTracking()
+            .Where(u => onlineNames.Contains(u.Name))
+            .OrderBy(u => u.Name)
+            .ToListAsync();
+
+        return Ok(users.Select(user => UserMapper.ToResponse(user, isOnline: true)));
     }
 
     [HttpGet("user")]
@@ -24,21 +43,17 @@ public class UserController(AppDbContext db, PresenceService presence) : Control
             return BadRequest(new { detail = "Name is required" });
         }
 
+        var trimmedName = name.Trim();
         var user = await db.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Name == name.Trim());
+            .FirstOrDefaultAsync(u => u.Name == trimmedName);
 
         if (user is null)
         {
             return NotFound(new { detail = "User not found" });
         }
 
-        return Ok(new UserResponse
-        {
-            Name = user.Name,
-            Wins = user.Wins,
-            Loses = user.Loses,
-            TotalGames = user.TotalGames,
-        });
+        var isOnline = presence.GetOnlineUsers().Contains(trimmedName, StringComparer.Ordinal);
+        return Ok(UserMapper.ToResponse(user, isOnline));
     }
 }

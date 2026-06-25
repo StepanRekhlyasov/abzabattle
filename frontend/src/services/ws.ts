@@ -6,7 +6,7 @@ let connection: signalR.HubConnection | null = null
 
 function registerHandlers(hub: signalR.HubConnection) {
     hub.on('PresenceSnapshot', (users: PresenceSnapshot) => {
-        useUserStore().setOnlineUsers(users)
+        useUserStore().setUsers(users)
     })
 
     hub.on('PresenceUpdated', (update: PresenceUpdate) => {
