@@ -2,6 +2,7 @@
     <div 
         class="battle-sector" 
         @click="emit('sector-click', sectorData)"
+        @contextmenu.prevent="emit('sector-contextmenu', sectorData)"
         @mouseenter="emit('sector-hover', sectorData)" 
         :class="{'empty': !sectorData.entity.content}"
     >
@@ -28,6 +29,7 @@ defineProps<{
 
 const emit = defineEmits<{
     (e: 'sector-click', sector: BattleSector): void;
+    (e: 'sector-contextmenu', sector: BattleSector): void;
     (e: 'sector-hover', sector: BattleSector): void;
 }>();
 </script>

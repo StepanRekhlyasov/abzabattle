@@ -130,5 +130,34 @@ export const useBattleMap = () => {
         return revealed;
     };
 
-    return { generateBattleMap, randomlyDeployEntities, getPlacementPreview, placeEntity, prepareBattleMapForBattle, isEntityAlive, revealAllSectors };
+    const removeEntityAt = (battleMap: BattleMap, position: MapPosition): EntityType | null => {
+        if (!isInsideMap(battleMap, position)) return null;
+
+        const sector = getSector(battleMap, position);
+        const entityId = sector.entity.id;
+        const entityType = sector.entity.type;
+        if (!entityId || entityType === EntityType.Empty) return null;
+
+        battleMap.sectors.forEach(row => row.forEach(cell => {
+            if (cell.entity.id === entityId) {
+                cell.entity = { type: EntityType.Empty } as Entity;
+                cell.hidden = false;
+                cell.destroyed = false;
+                delete cell.shielded;
+            }
+        }));
+
+        return entityType;
+    };
+
+    return {
+        generateBattleMap,
+        randomlyDeployEntities,
+        getPlacementPreview,
+        placeEntity,
+        removeEntityAt,
+        prepareBattleMapForBattle,
+        isEntityAlive,
+        revealAllSectors,
+    };
 };

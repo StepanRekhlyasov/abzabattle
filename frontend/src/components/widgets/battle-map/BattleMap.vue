@@ -9,6 +9,7 @@
                 :preview-state="getPreviewState(index, rowIndex)"
                 :dense-mode="denseMode"
                 @sector-click="emit('sector-click', { sector, x: index, y: rowIndex })"
+                @sector-contextmenu="emit('sector-contextmenu', { sector, x: index, y: rowIndex })"
                 @sector-hover="emit('sector-hover', { x: index, y: rowIndex })"
             />
         </div>
@@ -29,6 +30,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     (e: 'sector-click', payload: { sector: BattleSectorType; x: number; y: number }): void;
+    (e: 'sector-contextmenu', payload: { sector: BattleSectorType; x: number; y: number }): void;
     (e: 'sector-hover', payload: { x: number; y: number }): void;
     (e: 'sector-leave'): void;
 }>();

@@ -30,7 +30,6 @@
                     <option value="rebel">Rebel</option>
                 </select>
             </label>
-            <button @click="resetBattleMap" class="generic-button">Generate Battle Map</button>
         </div>
         <div v-else-if="readOnlySummary" class="wrapper settings-wrapper settings-wrapper--readonly">
             <div class="item"><span>Battle map size:</span> {{ readOnlySummary.mapSize }}x{{ readOnlySummary.mapSize }}</div>
@@ -43,6 +42,7 @@
                 :preview-cells="previewCellKeys"
                 :preview-valid="previewIsValid"
                 @sector-click="handleSectorClick"
+                @sector-contextmenu="handleSectorContextMenu"
                 @sector-hover="handleSectorHover"
                 @sector-leave="hoverAnchor = null"
             />
@@ -60,9 +60,6 @@
                 </div>
             </div>
         </div>
-        <div v-else class="wrapper map-wrapper">
-            <button @click="resetBattleMap" class="generic-button">Generate Battle Map</button>
-        </div>
     </div>
 </template>
 
@@ -73,6 +70,7 @@ import DeployRoster from '@/components/widgets/roster/DeployRoster.vue';
 import { useBattleMap } from '@/composables/useBattleMap';
 import { getEntityDefinition } from '@/data/entityDefinitions';
 import { useDraftStore } from '@/stores/draft.store';
+import type { BattleSector } from '@/types/map';
 import { EntityRotation, EntityType, type Entity } from '@/types/entity';
 import type { Faction } from '@/types/session';
 import { storeToRefs } from 'pinia';
@@ -106,7 +104,7 @@ const emit = defineEmits<{
 const draftStore = useDraftStore();
 const { battleMap, selectedFaction, ptsLimit, selectedEntity, selectedRotation, ptsRemaining, isPtsOverLimit } = storeToRefs(draftStore);
 
-const { generateBattleMap, placeEntity, getPlacementPreview } = useBattleMap();
+const { generateBattleMap, placeEntity, removeEntityAt, getPlacementPreview } = useBattleMap();
 const userStore = useUserStore();
 const { currentUser } = storeToRefs(userStore);
 const battleMapSize = ref(String(props.fixedMapSize ?? 12));
@@ -177,6 +175,24 @@ const handleSectorClick = ({ x, y }: { x: number; y: number }) => {
     hoverAnchor.value = null;
 };
 
+const handleSectorContextMenu = ({
+    sector,
+    x,
+    y,
+}: {
+    sector: BattleSector;
+    x: number;
+    y: number;
+}) => {
+    if (!battleMap.value || sector.entity.type === EntityType.Empty) return;
+
+    const removedType = removeEntityAt(battleMap.value, { x, y });
+    if (!removedType) return;
+
+    draftStore.addPtsSpent(-getEntityDefinition(removedType).ptsCost);
+    hoverAnchor.value = null;
+};
+
 const handleKeyDown = (event: KeyboardEvent) => {
     if (!isRotateKey(event.key) || isEditableTarget(event.target)) return;
     if (!buildSelectedEntity()) return;
@@ -218,6 +234,13 @@ watch(() => props.lockedFaction, (faction) => {
 
 watch(selectedFaction, () => {
     if (!props.readOnlySettings) {
+        resetBattleMap();
+        selectedEntity.value = null;
+    }
+});
+
+watch(battleMapSize, () => {
+    if (!props.readOnlySettings && props.fixedMapSize == null) {
         resetBattleMap();
         selectedEntity.value = null;
     }

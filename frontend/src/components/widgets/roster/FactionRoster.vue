@@ -21,7 +21,7 @@ const deploymentUnits = computed(() => getDeploymentUnitsByFaction(props.faction
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    max-height: calc(100vh - 268px);
+    max-height: calc(100vh - 340px);
     overflow: auto;
     border-radius: 10px;
     .roster-item {

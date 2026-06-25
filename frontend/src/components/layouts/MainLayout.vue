@@ -21,10 +21,12 @@
             </p>
             <p v-else-if="showDraftHint" class="footer-hint">
                 <template v-if="showRotateHint">
-                    Press <kbd>R</kbd> / <kbd>К</kbd> to rotate selected unit ({{ selectedRotation }}°)
+                    Press <kbd>R</kbd> / <kbd>К</kbd> to rotate selected unit ({{ selectedRotation }}°).
+                    Right-click a placed unit to remove it.
                 </template>
                 <template v-else>
                     Select a unit to deploy. Press <kbd>R</kbd> / <kbd>К</kbd> to rotate it.
+                    Right-click a placed unit to remove it.
                 </template>
             </p>
         </div>
