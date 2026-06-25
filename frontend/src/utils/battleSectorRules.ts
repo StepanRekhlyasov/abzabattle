@@ -5,7 +5,7 @@ import { AbilityKind } from '@/data/unitAbilities';
 export function canAttackSector(sector: BattleSector, abilityKind?: AbilityKind): boolean {
     if (!sector.destroyed) return true;
 
-    if (abilityKind === AbilityKind.AirborneSuperiority || abilityKind === AbilityKind.Bombardment) {
+    if (abilityKind === AbilityKind.OneInAMillion || abilityKind === AbilityKind.Bombardment) {
         return sector.entity.type === EntityType.DeathStar;
     }
 

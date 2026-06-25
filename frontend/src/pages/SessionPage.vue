@@ -52,7 +52,6 @@ import { useRoute } from 'vue-router';
 import MainLayout from '@/components/layouts/MainLayout.vue';
 import BattleView from '@/components/session/BattleView.vue';
 import DeployPanel from '@/components/session/DeployPanel.vue';
-import VictoryView from '@/components/session/VictoryView.vue';
 import WaitingView from '@/components/session/WaitingView.vue';
 import { useDraftStore } from '@/stores/draft.store';
 import { useSessionStore } from '@/stores/session.store';
@@ -83,7 +82,6 @@ const {
     initialized: replayInitialized,
     canGoPrevious,
     canGoNext,
-    isAtLastFrame,
     loadReplay,
     goPrevious,
     goNext,

@@ -404,7 +404,7 @@ const handleOpponentSectorClick = async ({
     if (ability) {
         if (ability.target !== 'opponent') return;
         if (ability.kind !== AbilityKind.OpponentStrike
-            && ability.kind !== AbilityKind.AirborneSuperiority
+            && ability.kind !== AbilityKind.OneInAMillion
             && ability.kind !== AbilityKind.Bombardment
             && ability.kind !== AbilityKind.SingleReactorIgnition) return;
         if (!canAttackSector(sector, ability.kind)) return;

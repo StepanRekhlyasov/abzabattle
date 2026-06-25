@@ -484,11 +484,11 @@ public class SessionController(
 
                 break;
             }
-            case "airborne-superiority":
+            case "one-in-a-million":
             {
                 var targetBefore = BattleMapReader.TryGetSectorTarget(opponentMapJson, request.X, request.Y);
 
-                if (!BattleMapMutator.TryAirborneSuperiorityStrike(
+                if (!BattleMapMutator.TryOneInAMillionStrike(
                         opponentMapJson,
                         request.X,
                         request.Y,
@@ -631,8 +631,8 @@ public class SessionController(
                     session,
                     playerName,
                     request.AbilityKind,
-                    null,
-                    null,
+                    request.X,
+                    request.Y,
                     targetBefore,
                     null,
                     updatedOwnMapJson,

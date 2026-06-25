@@ -225,9 +225,8 @@ public class SessionActionLogger(AppDbContext db)
     {
         return abilityKind switch
         {
-            "place-shield" => $"{playerName} uses {abilityName}.",
-            "deploy-tie-fighter" => $"{playerName} uses {abilityName} on {x}/{y} sector.",
-            "place-space-mine" => $"{playerName} uses {abilityName} on {x}/{y} sector.",
+            "place-shield" or "deploy-tie-fighter" or "place-space-mine"
+                => $"{playerName} uses {abilityName} on {x}/{y} sector.",
             _ => FormatTargetedAbilityMessage(playerName, abilityName, x, y, targetBefore, outcome, isKill),
         };
     }
@@ -293,7 +292,7 @@ public class SessionActionLogger(AppDbContext db)
         "place-space-mine" => "Space Mines",
         "single-reactor-ignition" => "Single-reactor Ignition",
         "place-shield" => "Deflector Shield",
-        "airborne-superiority" => "Airborne Superiority",
+        "one-in-a-million" or "airborne-superiority" => "One In A Million",
         "bombardment" => "Bombardment",
         "opponent-strike" => isRebel ? "Turbolaser Batteries" : "Swarm Tactics",
         _ => abilityKind,

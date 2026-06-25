@@ -47,7 +47,7 @@ public static class BattleMapMutator
         return ApplySectorHit(sectors, sector, out updatedJson, out outcome, root);
     }
 
-    public static bool TryAirborneSuperiorityStrike(
+    public static bool TryOneInAMillionStrike(
         string battleMapJson,
         int x,
         int y,

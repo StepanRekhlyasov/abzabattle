@@ -7,7 +7,7 @@ export enum AbilityKind {
     SingleReactorIgnition = 'single-reactor-ignition',
     OpponentStrike = 'opponent-strike',
     PlaceShield = 'place-shield',
-    AirborneSuperiority = 'airborne-superiority',
+    OneInAMillion = 'one-in-a-million',
     Bombardment = 'bombardment',
 }
 
@@ -80,9 +80,9 @@ const ABILITY_DEFINITIONS: Partial<Record<EntityType, AbilityDefinition>> = {
         target: 'own',
     },
     [EntityType.XWing]: {
-        name: 'One In a Million',
+        name: 'One In A Million',
         description: 'Fire at a sector on the opponent map. Destroys Tie Fighters. Reveals other units without destroying them. Has a ' + DEATH_STAR_DESTROY_CHANCE + '% chance to destroy the Death Star when hitting the reactor (central sector). Does not end your turn.',
-        kind: AbilityKind.AirborneSuperiority,
+        kind: AbilityKind.OneInAMillion,
         target: 'opponent',
     },
     [EntityType.UWing]: {

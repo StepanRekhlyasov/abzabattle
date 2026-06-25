@@ -107,9 +107,6 @@ export function useSessionReplay(session: () => Session | null) {
     const currentFrame = computed(() => frames.value[currentIndex.value] ?? null);
     const canGoPrevious = computed(() => !loading.value && currentIndex.value > 0);
     const canGoNext = computed(() => !loading.value && currentIndex.value < frames.value.length - 1);
-    const isAtLastFrame = computed(() =>
-        frames.value.length > 0 && currentIndex.value === frames.value.length - 1,
-    );
     const hasReplay = computed(() => frames.value.length > 1);
 
     const waitForFrameRender = async () => {
@@ -184,7 +181,6 @@ export function useSessionReplay(session: () => Session | null) {
         hasReplay,
         canGoPrevious,
         canGoNext,
-        isAtLastFrame,
         loadReplay,
         goPrevious,
         goNext,

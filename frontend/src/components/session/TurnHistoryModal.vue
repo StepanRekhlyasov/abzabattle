@@ -20,7 +20,7 @@
                 <div v-else-if="logs.length === 0" class="turn-history-state">No actions recorded yet.</div>
                 <ul v-else class="turn-history-list">
                     <li
-                        v-for="log in logs"
+                        v-for="log in displayedLogs"
                         :key="log.id"
                         class="turn-history-item"
                     >
@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import * as sessionApi from '@/services/sessionApi';
 import type { SessionActionLog } from '@/types/turnHistory';
 import { useSessionStore } from '@/stores/session.store';
@@ -49,6 +49,7 @@ const emit = defineEmits<{
 
 const sessionStore = useSessionStore();
 const logs = ref<SessionActionLog[]>([]);
+const displayedLogs = computed(() => [...logs.value].reverse());
 const loading = ref(false);
 const error = ref<string | null>(null);
 
