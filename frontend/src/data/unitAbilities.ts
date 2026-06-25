@@ -33,7 +33,7 @@ export type PassiveAbility = {
 };
 
 export const TIE_FIGHTERS_PER_ABILITY = 3;
-export const DEATH_STAR_DESTROY_CHANCE = 33;
+export const DEATH_STAR_DESTROY_CHANCE = 20;
 
 const PASSIVE_ABILITY_DEFINITIONS: Partial<Record<EntityType, Omit<PassiveAbility, 'id' | 'image'>>> = {
     [EntityType.DeathStar]: {

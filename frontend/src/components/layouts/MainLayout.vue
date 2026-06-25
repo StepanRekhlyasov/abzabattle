@@ -16,6 +16,20 @@
     </div>
     <div class="main-layout-footer">
         <div class="main-layout-footer__start">
+            <div class="footer-help">
+                <button
+                    type="button"
+                    class="footer-help__button"
+                    aria-label="Battle rules"
+                >
+                    <FontAwesomeIcon :icon="faCircleQuestion" />
+                </button>
+                <div class="footer-help__tooltip" role="tooltip">
+                    <ul class="footer-help__list">
+                        <li v-for="tip in battleRulesTips" :key="tip">{{ tip }}</li>
+                    </ul>
+                </div>
+            </div>
             <p v-if="showReplayHint" class="footer-hint">
                 Press <kbd>Space</kbd> to go to the next action
             </p>
@@ -80,8 +94,18 @@ import { useAppStore } from '@/stores/app.store';
 import { useDraftStore } from '@/stores/draft.store';
 import TurnHistoryModal from '@/components/session/TurnHistoryModal.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faHouse, faRightFromBracket } from '@fortawesome/free-solid-svg-icons'
+import { faHouse, faRightFromBracket, faCircleQuestion } from '@fortawesome/free-solid-svg-icons'
 import router from '@/router';
+import { DEATH_STAR_DESTROY_CHANCE } from '@/data/unitAbilities';
+
+const battleRulesTips = [
+    'Use your ship abilities first — they do not end your turn.',
+    'If no ability is selected, you perform a basic attack. If it hits, you may repeat basic attacks up to 3 times in total.',
+    'Missing with a basic attack ends your turn.',
+    'The first hit on a shield reveals it, the second destroys the shield, and only the third hit destroys the target.',
+    'Death Star has a fatal construction flaw: an X-Wing firing at the reactor (central sector) has a ' + DEATH_STAR_DESTROY_CHANCE + '%     chance to destroy the entire station!',
+    'If you want to give feedback or report a bug, please contact me at @artifitialme on Telegram. I would love to hear from you!',
+];
 
 const userStore = useUserStore();
 const authStore = useAuthStore();
@@ -169,6 +193,8 @@ const handleGiveUp = async () => {
         flex: 1;
         display: flex;
         align-items: center;
+        gap: 10px;
+        min-width: 0;
     }
 
     &__center {
@@ -223,6 +249,92 @@ const handleGiveUp = async () => {
     &:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+    }
+}
+
+.footer-help {
+    position: relative;
+    flex-shrink: 0;
+
+    &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 100%;
+        width: 28px;
+        height: 14px;
+    }
+
+    &__button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 16px;
+        cursor: help;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.16);
+            color: #fff;
+        }
+    }
+
+    &__tooltip {
+        position: absolute;
+        left: 0;
+        bottom: calc(100% + 10px);
+        min-width: 280px;
+        max-width: min(360px, calc(100vw - 24px));
+        padding: var(--space-sm);
+        border-radius: 8px;
+        background-color: rgba(0, 0, 0, 0.94);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(4px);
+        transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+        pointer-events: none;
+        z-index: 20;
+
+        &::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 100%;
+            height: 14px;
+        }
+
+        li {
+            list-style-type: disc;
+        }
+    }
+
+    &:hover &__tooltip,
+    &__tooltip:hover,
+    &__button:focus-visible + &__tooltip {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+}
+
+.footer-help__list {
+    margin: 0;
+    padding-left: 18px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 12px;
+    line-height: 1.45;
+
+    li + li {
+        margin-top: 6px;
     }
 }
 </style>

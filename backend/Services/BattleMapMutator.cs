@@ -5,7 +5,7 @@ namespace backend.Services;
 
 public static class BattleMapMutator
 {
-    private const int DeathStarReactorDestroyChancePercent = 33;
+    private const int DeathStarReactorDestroyChancePercent = 20;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
