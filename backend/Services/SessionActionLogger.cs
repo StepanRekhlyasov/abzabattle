@@ -105,6 +105,26 @@ public class SessionActionLogger(AppDbContext db)
             cancellationToken);
     }
 
+    public async Task LogGiveUpAsync(
+        GameSession session,
+        string playerName,
+        CancellationToken cancellationToken = default)
+    {
+        var payload = new
+        {
+            actionKind = "give-up",
+            snapshot = BuildSnapshot(session),
+        };
+
+        await AddLogAsync(
+            session.Id,
+            playerName,
+            "give-up",
+            $"{playerName} gave up.",
+            payload,
+            cancellationToken);
+    }
+
     public async Task<IReadOnlyList<SessionActionLog>> GetLogsAsync(
         Guid sessionId,
         CancellationToken cancellationToken = default)

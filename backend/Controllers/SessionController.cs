@@ -656,6 +656,40 @@ public class SessionController(
         return Ok(await ToResponseAsync(session, playerName));
     }
 
+    [HttpPost("{id:guid}/give-up")]
+    public async Task<ActionResult<SessionResponse>> GiveUp(Guid id, [FromBody] GiveUpRequest request)
+    {
+        var session = await db.Sessions.FirstOrDefaultAsync(s => s.Id == id);
+        if (session is null)
+        {
+            return NotFound(new { detail = "Session not found" });
+        }
+
+        if (session.Status != SessionStatus.InProgress)
+        {
+            return Conflict(new { detail = "Battle is not in progress" });
+        }
+
+        var playerName = request.PlayerName.Trim();
+        var isRebel = playerName == session.RebelPlayerName;
+        var isImperial = playerName == session.ImperialPlayerName;
+
+        if (!isRebel && !isImperial)
+        {
+            return Conflict(new { detail = "Player is not in this session" });
+        }
+
+        var winnerName = isRebel ? session.ImperialPlayerName! : session.RebelPlayerName!;
+
+        await actionLogger.LogGiveUpAsync(session, playerName);
+        await AwardVictoryAsync(session, winnerName, playerName);
+
+        await db.SaveChangesAsync();
+        await broadcast.BroadcastUpdatedAsync(session);
+
+        return Ok(await ToResponseAsync(session, playerName));
+    }
+
     private async Task<SessionResponse> ToResponseAsync(GameSession session, string? viewer)
     {
         var users = await sessionUsers.GetUsersForSessionAsync(session);
@@ -682,11 +716,16 @@ public class SessionController(
         }
 
         var loserName = isRebel ? session.ImperialPlayerName! : session.RebelPlayerName!;
-        var winner = await db.Users.FirstAsync(u => u.Name == playerName);
+        await AwardVictoryAsync(session, playerName, loserName);
+    }
+
+    private async Task AwardVictoryAsync(GameSession session, string winnerName, string loserName)
+    {
+        var winner = await db.Users.FirstAsync(u => u.Name == winnerName);
         var loser = await db.Users.FirstAsync(u => u.Name == loserName);
 
         session.Status = SessionStatus.Finished;
-        session.WinnerPlayerName = playerName;
+        session.WinnerPlayerName = winnerName;
 
         winner.Wins++;
         winner.TotalGames++;

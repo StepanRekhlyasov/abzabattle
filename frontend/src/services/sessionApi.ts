@@ -63,6 +63,11 @@ export async function useAbility(id: string, payload: UseAbilityPayload) {
     return response.data;
 }
 
+export async function giveUp(id: string, playerName: string) {
+    const response = await api.post<Session>(`/sessions/${id}/give-up`, { playerName });
+    return response.data;
+}
+
 export async function fetchSessionHistory(id: string) {
     const response = await api.get<SessionActionLog[]>(`/sessions/${id}/history`);
     return response.data;

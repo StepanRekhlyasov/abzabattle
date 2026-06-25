@@ -39,6 +39,15 @@
             >
                 Turn History
             </button>
+            <button
+                v-if="showGiveUpButton"
+                type="button"
+                class="generic-button give-up-button"
+                :disabled="isLoading"
+                @click="handleGiveUp"
+            >
+                Give Up
+            </button>
             <p>Wins: {{ userStore.currentUser?.wins ?? 0 }}</p>
             <p>Loses: {{ userStore.currentUser?.loses ?? 0 }}</p>
             <p>Total games: {{ userStore.currentUser?.totalGames ?? 0 }}</p>
@@ -98,6 +107,27 @@ const showTurnHistoryButton = computed(() => {
     const session = sessionStore.currentSession;
     return !!session && (session.status === 'in_progress' || session.status === 'finished');
 });
+
+const showGiveUpButton = computed(() => {
+    const session = sessionStore.currentSession;
+    const playerName = userStore.currentUser?.name;
+    if (!session || session.status !== 'in_progress' || !playerName) {
+        return false;
+    }
+
+    return session.rebel.player?.name === playerName
+        || session.imperial.player?.name === playerName;
+});
+
+const handleGiveUp = async () => {
+    const session = sessionStore.currentSession;
+    const playerName = userStore.currentUser?.name;
+    if (!session || !playerName || isLoading.value) {
+        return;
+    }
+
+    await sessionStore.giveUp(session.id, playerName);
+};
 </script>
 
 <style scoped lang="scss">
@@ -178,6 +208,21 @@ const showTurnHistoryButton = computed(() => {
         font-size: 0.85rem;
         line-height: 1.2;
         text-align: center;
+    }
+}
+
+.give-up-button {
+    background-color: #c62828;
+    color: #fff;
+
+    &:hover:not(:disabled) {
+        background-color: #e53935;
+        color: #fff;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 }
 </style>

@@ -200,6 +200,17 @@ export const useSessionStore = defineStore('session', {
                 appStore.setLoading(false);
             }
         },
+        async giveUp(id: string, playerName: string) {
+            const appStore = useAppStore();
+            appStore.setLoading(true);
+            try {
+                const session = await sessionApi.giveUp(id, playerName);
+                this.commitSession(session);
+                return session;
+            } finally {
+                appStore.setLoading(false);
+            }
+        },
         async deleteSession(id: string, adminName: string) {
             await sessionApi.deleteSession(id, adminName);
             this.removeSession(id);
