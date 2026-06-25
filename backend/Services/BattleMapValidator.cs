@@ -49,14 +49,14 @@ public static class BattleMapValidator
     {
         var ptsByType = new Dictionary<string, int>(StringComparer.Ordinal)
         {
-            ["star-destroyer"] = 40,
+            ["star-destroyer"] = 30,
             ["mon-calamari"] = 30,
             ["tie-fighter"] = 10,
-            ["nebulon-frigate"] = 20,
+            ["nebulon-frigate"] = 25,
             ["x-wing"] = 15,
             ["u-wing"] = 20,
-            ["gozanti-class-cruiser"] = 25,
-            ["death-star"] = 100,
+            ["gozanti-class-cruiser"] = 20,
+            ["death-star"] = 70,
         };
 
         var spent = 0;

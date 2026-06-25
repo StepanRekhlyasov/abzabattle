@@ -33,11 +33,12 @@ export type PassiveAbility = {
 };
 
 export const TIE_FIGHTERS_PER_ABILITY = 3;
+export const DEATH_STAR_DESTROY_CHANCE = 33;
 
 const PASSIVE_ABILITY_DEFINITIONS: Partial<Record<EntityType, Omit<PassiveAbility, 'id' | 'image'>>> = {
     [EntityType.DeathStar]: {
         name: 'Fatal Construction Flaw',
-        description: 'A fatal design flaw leaves the Death Star vulnerable: a lucky starfighter may destroy the entire station with a single shot to the reactor (the central sector)!',
+        description: 'A fatal design flaw leaves the Death Star vulnerable: an X-Wing firing at the reactor (central sector) has a ' + DEATH_STAR_DESTROY_CHANCE + '% chance to destroy the entire station!',
     },
 };
 
@@ -80,13 +81,13 @@ const ABILITY_DEFINITIONS: Partial<Record<EntityType, AbilityDefinition>> = {
     },
     [EntityType.XWing]: {
         name: 'One In a Million',
-        description: 'Fire at a sector on the opponent map. Destroys Tie Fighters. Reveals other units without destroying them. Have 50% change to destroy Death Star if hitting the middle sector. Does not end your turn.',
+        description: 'Fire at a sector on the opponent map. Destroys Tie Fighters. Reveals other units without destroying them. Has a ' + DEATH_STAR_DESTROY_CHANCE + '% chance to destroy the Death Star when hitting the reactor (central sector). Does not end your turn.',
         kind: AbilityKind.AirborneSuperiority,
         target: 'opponent',
     },
     [EntityType.UWing]: {
         name: 'Bombardment',
-        description: 'Fire at a sector on the opponent map. Reveals Tie Fighters without destroying them. Have 50% change to destroy Death Star if hitting the middle sector. Does not end your turn.',
+        description: 'Fire at a sector on the opponent map. Reveals Tie Fighters without destroying them. Does not end your turn.',
         kind: AbilityKind.Bombardment,
         target: 'opponent',
     },

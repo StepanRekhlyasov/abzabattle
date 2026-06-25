@@ -5,6 +5,8 @@ namespace backend.Services;
 
 public static class BattleMapMutator
 {
+    private const int DeathStarReactorDestroyChancePercent = 33;
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -138,11 +140,6 @@ public static class BattleMapMutator
         }
 
         if (!destroyed && TryHandleSpaceMineHit(sector, root, out updatedJson, out outcome))
-        {
-            return true;
-        }
-
-        if (TryReactorCriticalStrike(sectors, sector, root, out updatedJson, out outcome))
         {
             return true;
         }
@@ -369,7 +366,7 @@ public static class BattleMapMutator
 
         sector["hidden"] = false;
 
-        if (Random.Shared.Next(2) != 0)
+        if (Random.Shared.Next(100) >= DeathStarReactorDestroyChancePercent)
         {
             return false;
         }
