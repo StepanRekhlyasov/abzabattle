@@ -7,7 +7,7 @@
     >
         <div v-if="sectorData.hidden" class="battle-sector-hidden" />
         <div v-else-if="!sectorData.destroyed" class="battle-sector-content" :class="{'with-contend' : sectorData.entity.content}">{{ sectorData.entity.content }}</div>
-        <div v-else class="battle-sector-destroyed">{{ sectorData.entity.content }}</div>
+        <div v-else class="battle-sector-destroyed" :class="{'dead': !isEntityAlive}">{{ sectorData.entity.content }}</div>
         <div
             v-if="isShieldVisible(sectorData)"
             class="battle-sector-shield"
@@ -23,6 +23,7 @@ defineProps<{
     sectorData: BattleSector;
     denseMode: boolean;
     previewState?: 'valid' | 'invalid' | null;
+    isEntityAlive: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -61,6 +62,9 @@ const emit = defineEmits<{
         display: flex;
         align-items: center;
         justify-content: center;
+        &.dead {
+            text-decoration: line-through;
+        }
     }
     .battle-sector-destroyed { background-color: var(--color-sector-destroyed); }
     .battle-sector-shield {

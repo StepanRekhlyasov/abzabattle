@@ -106,5 +106,9 @@ export const useBattleMap = () => {
         return prepared;
     };
 
-    return { generateBattleMap, randomlyDeployEntities, getPlacementPreview, placeEntity, prepareBattleMapForBattle };
+    const isEntityAlive = (entityId: string, battleMap: BattleMap) => {
+        return battleMap.sectors.some(row => row.some(sector => sector.entity.id === entityId && !sector.destroyed));
+    };
+
+    return { generateBattleMap, randomlyDeployEntities, getPlacementPreview, placeEntity, prepareBattleMapForBattle, isEntityAlive };
 };

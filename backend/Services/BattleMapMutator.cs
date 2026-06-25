@@ -37,7 +37,7 @@ public static class BattleMapMutator
             return false;
         }
 
-        return TryHitTheSector(sector, out updatedJson, out outcome, root);
+        return ApplySectorHit(sectors, sector, out updatedJson, out outcome, root);
     }
 
     public static bool TryAirborneSuperiorityStrike(
@@ -81,7 +81,7 @@ public static class BattleMapMutator
             return true;
         }
 
-        return TryHitTheSector(sector, out updatedJson, out outcome, root);
+        return ApplySectorHit(sectors, sector, out updatedJson, out outcome, root);
     }
 
     public static bool TryBombardmentStrike(
@@ -120,7 +120,7 @@ public static class BattleMapMutator
             return true;
         }
 
-        return TryHitTheSector(sector, out updatedJson, out outcome, root);
+        return ApplySectorHit(sectors, sector, out updatedJson, out outcome, root);
     }
 
     public static bool TryDeployTieFighter(string battleMapJson, int x, int y, out string updatedJson)
@@ -161,7 +161,12 @@ public static class BattleMapMutator
         return true;
     }
 
-    private static bool TryHitTheSector(JsonObject sector, out string updatedJson, out StrikeOutcome outcome, JsonNode root)
+    private static bool ApplySectorHit(
+        JsonArray sectors,
+        JsonObject sector,
+        out string updatedJson,
+        out StrikeOutcome outcome,
+        JsonNode root)
     {
         var entityType = sector["entity"]?["type"]?.GetValue<string>();
         var isUnit = entityType is not null and not "empty";
@@ -195,11 +200,115 @@ public static class BattleMapMutator
             return true;
         }
 
-        outcome = isUnit ? StrikeOutcome.Hit : StrikeOutcome.Miss;
+        outcome = StrikeOutcome.Hit;
         sector["hidden"] = false;
         sector["destroyed"] = true;
+
+        var entityId = sector["entity"]?["id"]?.GetValue<string>();
+        if (!string.IsNullOrEmpty(entityId) && !HasIntactEntitySectors(sectors, entityId))
+        {
+            MarkAdjacentSectorsDestroyed(sectors, entityId);
+        }
+
         updatedJson = root.ToJsonString(JsonOptions);
         return true;
+    }
+
+    private static bool HasIntactEntitySectors(JsonArray sectors, string entityId)
+    {
+        for (var y = 0; y < sectors.Count; y++)
+        {
+            if (sectors[y] is not JsonArray row)
+            {
+                continue;
+            }
+
+            for (var x = 0; x < row.Count; x++)
+            {
+                if (row[x] is not JsonObject sectorObject)
+                {
+                    continue;
+                }
+
+                if (sectorObject["entity"]?["id"]?.GetValue<string>() != entityId)
+                {
+                    continue;
+                }
+
+                var destroyed = sectorObject["destroyed"]?.GetValue<bool>() ?? false;
+                if (!destroyed)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static void MarkAdjacentSectorsDestroyed(JsonArray sectors, string entityId)
+    {
+        var entityPositions = new HashSet<string>();
+        var footprint = new List<(int X, int Y)>();
+
+        for (var y = 0; y < sectors.Count; y++)
+        {
+            if (sectors[y] is not JsonArray row)
+            {
+                continue;
+            }
+
+            for (var x = 0; x < row.Count; x++)
+            {
+                if (row[x] is not JsonObject sectorObject)
+                {
+                    continue;
+                }
+
+                if (sectorObject["entity"]?["id"]?.GetValue<string>() != entityId)
+                {
+                    continue;
+                }
+
+                footprint.Add((x, y));
+                entityPositions.Add($"{x},{y}");
+            }
+        }
+
+        var adjacentPositions = new HashSet<(int X, int Y)>();
+        foreach (var (x, y) in footprint)
+        {
+            for (var dy = -1; dy <= 1; dy++)
+            {
+                for (var dx = -1; dx <= 1; dx++)
+                {
+                    if (dx == 0 && dy == 0)
+                    {
+                        continue;
+                    }
+
+                    var adjacentX = x + dx;
+                    var adjacentY = y + dy;
+                    if (entityPositions.Contains($"{adjacentX},{adjacentY}"))
+                    {
+                        continue;
+                    }
+
+                    adjacentPositions.Add((adjacentX, adjacentY));
+                }
+            }
+        }
+
+        foreach (var (x, y) in adjacentPositions)
+        {
+            if (!TryGetSector(sectors, x, y, out var adjacentSector))
+            {
+                continue;
+            }
+
+            adjacentSector["hidden"] = false;
+            adjacentSector["destroyed"] = true;
+        }
     }
 
     public static bool TryPlaceShield(

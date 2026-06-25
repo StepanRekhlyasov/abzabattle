@@ -49,7 +49,7 @@ public static class BattleMapValidator
     {
         var ptsByType = new Dictionary<string, int>(StringComparer.Ordinal)
         {
-            ["star-destroyer"] = 50,
+            ["star-destroyer"] = 40,
             ["mon-calamari"] = 30,
             ["tie-fighter"] = 10,
             ["nebulon-frigate"] = 20,

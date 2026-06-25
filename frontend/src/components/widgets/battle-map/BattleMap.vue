@@ -5,6 +5,7 @@
                 v-for="(sector, index) in row"
                 :key="index"
                 :sector-data="sector"
+                :isEntityAlive="isEntityAlive(sector.entity.id)"
                 :preview-state="getPreviewState(index, rowIndex)"
                 :dense-mode="denseMode"
                 @sector-click="emit('sector-click', { sector, x: index, y: rowIndex })"
@@ -18,6 +19,7 @@ import type { BattleMap } from '@/types/map';
 import type { BattleSector as BattleSectorType } from '@/types/map';
 import BattleSector from './BattleSector.vue';
 import { computed } from 'vue';
+import { useBattleMap } from '@/composables/useBattleMap';
 
 const props = defineProps<{
     battleMapData: BattleMap;
@@ -37,6 +39,11 @@ const getPreviewState = (x: number, y: number): 'valid' | 'invalid' | null => {
     const key = `${x},${y}`;
     if (!props.previewCells?.includes(key)) return null;
     return props.previewValid ? 'valid' : 'invalid';
+};
+
+const isEntityAlive = (entityId?: string) => {
+    if(!entityId) return false;
+    return useBattleMap().isEntityAlive(entityId, props.battleMapData);
 };
 </script>
 <style scoped lang="scss">

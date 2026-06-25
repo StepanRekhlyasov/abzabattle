@@ -277,6 +277,7 @@ public class SessionController(
             session.RebelBattleMapJson = updatedMapJson;
         }
 
+
         await CheckEndGameConditions(session, updatedMapJson, playerName);
         BattleTurnRules.ApplyNormalAttackOutcome(session, outcome);
         await db.SaveChangesAsync();
@@ -351,8 +352,6 @@ public class SessionController(
                     session.RebelBattleMapJson = updatedMapJson;
                 }
 
-                await CheckEndGameConditions(session, updatedMapJson, playerName);
-
                 break;
             }
             case "airborne-superiority":
@@ -367,8 +366,15 @@ public class SessionController(
                     return BadRequest(new { detail = "Sector cannot be attacked" });
                 }
 
-                session.ImperialBattleMapJson = updatedMapJson;
-                await CheckEndGameConditions(session, updatedMapJson, playerName);
+                if (isRebel)
+                {
+                    session.ImperialBattleMapJson = updatedMapJson;
+                }
+                else
+                {
+                    session.RebelBattleMapJson = updatedMapJson;
+                }
+
                 break;
             }
             case "bombardment":
@@ -383,7 +389,14 @@ public class SessionController(
                     return BadRequest(new { detail = "Sector cannot be attacked" });
                 }
 
-                session.ImperialBattleMapJson = updatedMapJson;
+                if (isRebel)
+                {
+                    session.ImperialBattleMapJson = updatedMapJson;
+                }
+                else
+                {
+                    session.RebelBattleMapJson = updatedMapJson;
+                }
 
                 break;
             }
@@ -412,9 +425,11 @@ public class SessionController(
                 return BadRequest(new { detail = "Unknown ability" });
         }
 
-        
-        await CheckEndGameConditions(session, opponentMapJson, playerName);
-        await CheckEndGameConditions(session, ownMapJson, playerName);
+        var opponentMapAfterAbility = isRebel ? session.ImperialBattleMapJson : session.RebelBattleMapJson;
+        if (!string.IsNullOrWhiteSpace(opponentMapAfterAbility))
+        {
+            await CheckEndGameConditions(session, opponentMapAfterAbility, playerName);
+        }
 
         await db.SaveChangesAsync();
         await broadcast.BroadcastUpdatedAsync(session);
@@ -429,6 +444,11 @@ public class SessionController(
     }
 
     private async Task CheckEndGameConditions(GameSession session, string battleMapJson, string playerName) {
+        if (session.Status == SessionStatus.Finished)
+        {
+            return;
+        }
+
         if (BattleMapValidator.HasRemainingUnits(battleMapJson))
         {
             return;
@@ -445,6 +465,9 @@ public class SessionController(
         var loserName = isRebel ? session.ImperialPlayerName! : session.RebelPlayerName!;
         var winner = await db.Users.FirstAsync(u => u.Name == playerName);
         var loser = await db.Users.FirstAsync(u => u.Name == loserName);
+
+        session.Status = SessionStatus.Finished;
+        session.WinnerPlayerName = playerName;
 
         winner.Wins++;
         winner.TotalGames++;
