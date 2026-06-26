@@ -246,7 +246,7 @@ public class SessionActionLogger(AppDbContext db)
         return abilityKind switch
         {
             "place-shield" or "deploy-tie-fighter" or "place-space-mine"
-                => $"{playerName} uses {abilityName} on {x}/{y} sector.",
+                => $"{playerName} uses {abilityName}.",
             _ => FormatTargetedAbilityMessage(playerName, abilityName, x, y, targetBefore, outcome, isKill),
         };
     }
