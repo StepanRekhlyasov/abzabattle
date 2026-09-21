@@ -55,7 +55,7 @@ services:
           target: /app/vite.config.mts
           action: restart
     ports:
-      - "8000:80"
+      - "8002:80"
     depends_on:
       - backend
       - phpmyadmin

@@ -52,8 +52,8 @@ export default defineConfig({
   },
   server: {
     host: true,
-    port: 80,
-    allowedHosts: ['abzabza.ru'],
+    port: 8002,
+    allowedHosts: ['abzabza.ru', 'battle.abzabza.ru'],
     watch: { usePolling: true },
     proxy: {
       '/api': {
